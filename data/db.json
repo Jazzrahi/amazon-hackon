@@ -1,0 +1,286 @@
+{
+  "users": [
+    {
+      "id": "user_001",
+      "name": "Priya Sharma",
+      "trust_score": 85,
+      "green_credits": 500,
+      "region": "Mumbai",
+      "area": "Andheri West"
+    },
+    {
+      "id": "user_002",
+      "name": "Rahul Verma",
+      "trust_score": 92,
+      "green_credits": 1200,
+      "region": "Delhi",
+      "area": "Connaught Place"
+    },
+    {
+      "id": "user_003",
+      "name": "Amit Patel",
+      "trust_score": 65,
+      "green_credits": 300,
+      "region": "Mumbai",
+      "area": "Bandra East"
+    },
+    {
+      "id": "user_004",
+      "name": "Sneha Gupta",
+      "trust_score": 72,
+      "green_credits": 800,
+      "region": "Bangalore",
+      "area": "Koramangala"
+    },
+    {
+      "id": "user_005",
+      "name": "Vikram Singh",
+      "trust_score": 35,
+      "green_credits": 100,
+      "region": "Delhi",
+      "area": "Rohini"
+    },
+    {
+      "id": "user_006",
+      "name": "Neha Reddy",
+      "trust_score": 42,
+      "green_credits": 50,
+      "region": "Bangalore",
+      "area": "Whitefield"
+    }
+  ],
+  "products": [
+    {
+      "id": "prod_001",
+      "name": "Cotton Kurta Set - Women's M",
+      "price": 1299,
+      "return_shipping_cost": 150,
+      "high_return_risk": true,
+      "category": "clothing",
+      "return_rate": 34,
+      "sizing_advice": "This brand runs small. Consider sizing up.",
+      "carbon_savings_kg": 2.3,
+      "inventory_owner": "seller",
+      "graded": false,
+      "grade": null,
+      "resale_price": null
+    },
+    {
+      "id": "prod_002",
+      "name": "Silk Saree - Blue Banarasi",
+      "price": 4599,
+      "return_shipping_cost": 200,
+      "high_return_risk": true,
+      "category": "clothing",
+      "return_rate": 28,
+      "sizing_advice": "Saree length is standard 5.5m. Blouse piece included.",
+      "carbon_savings_kg": 4.1,
+      "inventory_owner": "seller",
+      "graded": false,
+      "grade": null,
+      "resale_price": null
+    },
+    {
+      "id": "prod_003",
+      "name": "Men's Denim Jacket - L",
+      "price": 2499,
+      "return_shipping_cost": 180,
+      "high_return_risk": false,
+      "category": "clothing",
+      "return_rate": 15,
+      "sizing_advice": null,
+      "carbon_savings_kg": 3.5,
+      "inventory_owner": "seller",
+      "graded": false,
+      "grade": null,
+      "resale_price": null
+    },
+    {
+      "id": "prod_004",
+      "name": "Wireless Bluetooth Earbuds",
+      "price": 3999,
+      "return_shipping_cost": 120,
+      "high_return_risk": true,
+      "category": "electronics",
+      "return_rate": 22,
+      "sizing_advice": null,
+      "carbon_savings_kg": 1.8,
+      "inventory_owner": "seller",
+      "graded": false,
+      "grade": null,
+      "resale_price": null
+    },
+    {
+      "id": "prod_005",
+      "name": "Smart Watch - Fitness Tracker",
+      "price": 12999,
+      "return_shipping_cost": 150,
+      "high_return_risk": false,
+      "category": "electronics",
+      "return_rate": 8,
+      "sizing_advice": null,
+      "carbon_savings_kg": 2.1,
+      "inventory_owner": "seller",
+      "graded": false,
+      "grade": null,
+      "resale_price": null
+    },
+    {
+      "id": "prod_006",
+      "name": "USB-C Charging Cable 2m",
+      "price": 499,
+      "return_shipping_cost": 250,
+      "high_return_risk": false,
+      "category": "electronics",
+      "return_rate": 5,
+      "sizing_advice": null,
+      "carbon_savings_kg": 0.5,
+      "inventory_owner": "seller",
+      "graded": false,
+      "grade": null,
+      "resale_price": null
+    },
+    {
+      "id": "prod_007",
+      "name": "Leather Handbag - Brown",
+      "price": 5999,
+      "return_shipping_cost": 200,
+      "high_return_risk": true,
+      "category": "accessories",
+      "return_rate": 19,
+      "sizing_advice": null,
+      "carbon_savings_kg": 3.2,
+      "inventory_owner": "seller",
+      "graded": false,
+      "grade": null,
+      "resale_price": null
+    },
+    {
+      "id": "prod_008",
+      "name": "Silver Anklet - Adjustable",
+      "price": 899,
+      "return_shipping_cost": 400,
+      "high_return_risk": false,
+      "category": "accessories",
+      "return_rate": 12,
+      "sizing_advice": null,
+      "carbon_savings_kg": 0.8,
+      "inventory_owner": "seller",
+      "graded": false,
+      "grade": null,
+      "resale_price": null
+    },
+    {
+      "id": "prod_009",
+      "name": "Sunglasses - Aviator Classic",
+      "price": 15999,
+      "return_shipping_cost": 100,
+      "high_return_risk": false,
+      "category": "accessories",
+      "return_rate": 6,
+      "sizing_advice": null,
+      "carbon_savings_kg": 1.2,
+      "inventory_owner": "amazon",
+      "graded": true,
+      "grade": "A",
+      "resale_price": 13599
+    }
+  ],
+  "demand": [
+    { "category": "clothing", "region": "Mumbai", "demand_score": 72 },
+    { "category": "clothing", "region": "Delhi", "demand_score": 55 },
+    { "category": "clothing", "region": "Bangalore", "demand_score": 68 },
+    { "category": "electronics", "region": "Mumbai", "demand_score": 80 },
+    { "category": "electronics", "region": "Delhi", "demand_score": 45 },
+    { "category": "electronics", "region": "Bangalore", "demand_score": 75 },
+    { "category": "accessories", "region": "Mumbai", "demand_score": 50 },
+    { "category": "accessories", "region": "Delhi", "demand_score": 62 },
+    { "category": "accessories", "region": "Bangalore", "demand_score": 38 }
+  ],
+  "delivery_routes": [
+    {
+      "driver_id": "drv_001",
+      "driver_name": "Rajesh Kumar",
+      "area": "Andheri West",
+      "time_windows": [
+        { "day": "Tomorrow", "slot": "2-4 PM" },
+        { "day": "Wednesday", "slot": "10-12 AM" }
+      ]
+    },
+    {
+      "driver_id": "drv_002",
+      "driver_name": "Suresh Yadav",
+      "area": "Connaught Place",
+      "time_windows": [
+        { "day": "Tomorrow", "slot": "11-1 PM" },
+        { "day": "Thursday", "slot": "3-5 PM" }
+      ]
+    },
+    {
+      "driver_id": "drv_003",
+      "driver_name": "Deepak Nair",
+      "area": "Koramangala",
+      "time_windows": [
+        { "day": "Friday", "slot": "9-11 AM" }
+      ]
+    },
+    {
+      "driver_id": "drv_004",
+      "driver_name": "Manoj Tiwari",
+      "area": "Bandra East",
+      "time_windows": [
+        { "day": "Tomorrow", "slot": "4-6 PM" }
+      ]
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ord_001",
+      "user_id": "user_001",
+      "product_id": "prod_001",
+      "order_date": "2026-06-08",
+      "status": "delivered",
+      "returned": false
+    },
+    {
+      "order_id": "ord_002",
+      "user_id": "user_001",
+      "product_id": "prod_004",
+      "order_date": "2026-06-03",
+      "status": "delivered",
+      "returned": false
+    },
+    {
+      "order_id": "ord_003",
+      "user_id": "user_002",
+      "product_id": "prod_002",
+      "order_date": "2026-05-29",
+      "status": "delivered",
+      "returned": false
+    },
+    {
+      "order_id": "ord_004",
+      "user_id": "user_003",
+      "product_id": "prod_005",
+      "order_date": "2026-05-24",
+      "status": "delivered",
+      "returned": false
+    },
+    {
+      "order_id": "ord_005",
+      "user_id": "user_005",
+      "product_id": "prod_007",
+      "order_date": "2026-06-01",
+      "status": "delivered",
+      "returned": false
+    },
+    {
+      "order_id": "ord_006",
+      "user_id": "user_004",
+      "product_id": "prod_003",
+      "order_date": "2026-04-29",
+      "status": "delivered",
+      "returned": true
+    }
+  ]
+}

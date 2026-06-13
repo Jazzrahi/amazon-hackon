@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>My Orders - Second Life Commerce</title>
+  <style>
+    :root {
+      --amazon-dark-navy: #232F3E;
+      --amazon-orange: #FF9900;
+      --amazon-white: #FFFFFF;
+      --amazon-light-gray: #F3F3F3;
+      --amazon-border: #DDD;
+      --amazon-text: #333;
+      --amazon-text-secondary: #565959;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Amazon Ember', Arial, sans-serif;
+      background-color: var(--amazon-light-gray);
+      color: var(--amazon-text);
+      max-width: 480px;
+      margin: 0 auto;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    .header {
+      background-color: var(--amazon-dark-navy);
+      color: var(--amazon-white);
+      padding: 16px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header__title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+
+    .header__subtitle {
+      font-size: 12px;
+      opacity: 0.8;
+    }
+
+    /* Success Banner */
+    .success-banner {
+      background-color: #067D62;
+      color: var(--amazon-white);
+      padding: 12px 20px;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      animation: slideDown 0.3s ease-out;
+    }
+
+    .success-banner__icon {
+      font-size: 16px;
+    }
+
+    @keyframes slideDown {
+      from { transform: translateY(-100%); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    /* Content */
+    .content {
+      padding: 16px;
+      flex: 1;
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--amazon-dark-navy);
+      margin-bottom: 12px;
+    }
+
+    /* Order Card */
+    .order-card {
+      background-color: var(--amazon-white);
+      border: 1px solid var(--amazon-border);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    .order-card__header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+
+    .order-card__product-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--amazon-dark-navy);
+      flex: 1;
+      margin-right: 8px;
+    }
+
+    .order-card__price {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--amazon-text);
+      white-space: nowrap;
+    }
+
+    .order-card__details {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .order-card__detail {
+      font-size: 12px;
+      color: var(--amazon-text-secondary);
+    }
+
+    .order-card__detail--id {
+      font-family: monospace;
+      background-color: var(--amazon-light-gray);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .order-card__status {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 12px;
+      text-transform: uppercase;
+    }
+
+    .order-card__status--delivered {
+      background-color: #E7F7E9;
+      color: #067D62;
+    }
+
+    .order-card__status--returned {
+      background-color: #FCE8E8;
+      color: #CC0000;
+    }
+
+    .order-card__status--processing {
+      background-color: #FFF4E0;
+      color: #B87A00;
+    }
+
+    /* Smart Return Button */
+    .btn-smart-return {
+      display: block;
+      width: 100%;
+      background-color: var(--amazon-orange);
+      color: var(--amazon-dark-navy);
+      border: none;
+      border-radius: 6px;
+      padding: 12px 16px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+      transition: background-color 0.2s;
+    }
+
+    .btn-smart-return:hover {
+      background-color: #E68A00;
+    }
+
+    .btn-smart-return:active {
+      background-color: #CC7A00;
+      transform: scale(0.98);
+    }
+
+    /* Loading State */
+    .loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+
+    .loading__spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid var(--amazon-border);
+      border-top-color: var(--amazon-orange);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    .loading__text {
+      margin-top: 12px;
+      font-size: 14px;
+      color: var(--amazon-text-secondary);
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+    }
+
+    .empty-state__icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+
+    .empty-state__text {
+      font-size: 14px;
+      color: var(--amazon-text-secondary);
+    }
+
+    /* Error State */
+    .error-state {
+      text-align: center;
+      padding: 40px 20px;
+      background-color: var(--amazon-white);
+      border-radius: 8px;
+      border: 1px solid #FCE8E8;
+    }
+
+    .error-state__icon {
+      font-size: 36px;
+      margin-bottom: 8px;
+    }
+
+    .error-state__text {
+      font-size: 14px;
+      color: #CC0000;
+      margin-bottom: 12px;
+    }
+
+    .error-state__retry {
+      background-color: var(--amazon-dark-navy);
+      color: var(--amazon-white);
+      border: none;
+      border-radius: 6px;
+      padding: 10px 20px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body data-user-id="user_001">
+
+  <!-- Header -->
+  <header class="header">
+    <h1 class="header__title">My Orders</h1>
+    <p class="header__subtitle">Priya Sharma</p>
+  </header>
+
+  <!-- Success Banner (shown when redirected after credit acceptance) -->
+  <div id="success-banner" style="display: none;"></div>
+
+  <!-- Main Content -->
+  <main class="content">
+    <h2 class="section-title">Recent Orders (Last 30 days)</h2>
+    <div id="orders-container">
+      <div class="loading">
+        <div class="loading__spinner"></div>
+        <p class="loading__text">Loading orders...</p>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    (function () {
+      'use strict';
+
+      const USER_ID = document.body.dataset.userId || 'user_001';
+      const ordersContainer = document.getElementById('orders-container');
+      const successBanner = document.getElementById('success-banner');
+
+      /**
+       * Check URL params for success status
+       */
+      function checkSuccessStatus() {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('status') === 'credit_accepted') {
+          successBanner.style.display = 'flex';
+          successBanner.className = 'success-banner';
+          successBanner.innerHTML = `
+            <span class="success-banner__icon">✅</span>
+            <span>Green Credits applied successfully!</span>
+          `;
+          // Remove the param from URL without reload
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+      }
+
+      /**
+       * Fetch product details by product ID
+       */
+      async function fetchProduct(productId) {
+        try {
+          const response = await fetch(`/api/product/${productId}`);
+          if (!response.ok) return null;
+          return await response.json();
+        } catch (err) {
+          console.error('[Orders] Failed to fetch product:', productId, err.message);
+          return null;
+        }
+      }
+
+      /**
+       * Format date string to readable format
+       */
+      function formatDate(dateStr) {
+        const date = new Date(dateStr);
+        return date.toLocaleDateString('en-IN', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric'
+        });
+      }
+
+      /**
+       * Escape HTML to prevent XSS
+       */
+      function escapeHtml(str) {
+        if (!str) return '';
+        const div = document.createElement('div');
+        div.appendChild(document.createTextNode(String(str)));
+        return div.innerHTML;
+      }
+
+      /**
+       * Get status badge class
+       */
+      function getStatusClass(order) {
+        if (order.returned) return 'order-card__status--returned';
+        if (order.status === 'delivered') return 'order-card__status--delivered';
+        return 'order-card__status--processing';
+      }
+
+      /**
+       * Get status label
+       */
+      function getStatusLabel(order) {
+        if (order.returned) return 'Returned';
+        if (order.status === 'delivered') return 'Delivered';
+        return 'Processing';
+      }
+
+      /**
+       * Check if an order is eligible for Smart Return
+       * Eligible: status is "delivered" AND not already returned
+       */
+      function isEligibleForReturn(order) {
+        return order.status === 'delivered' && order.returned === false;
+      }
+
+      /**
+       * Navigate to return flow page
+       */
+      function startSmartReturn(productId) {
+        window.location.href = `return-flow.html?user_id=${encodeURIComponent(USER_ID)}&product_id=${encodeURIComponent(productId)}`;
+      }
+
+      /**
+       * Render a single order card
+       */
+      function renderOrderCard(order, product) {
+        const productName = product ? escapeHtml(product.name) : `Order ${escapeHtml(order.order_id)}`;
+        const price = product ? `₹${product.price.toLocaleString('en-IN')}` : '—';
+        const eligible = isEligibleForReturn(order);
+
+        const card = document.createElement('div');
+        card.className = 'order-card';
+        card.innerHTML = `
+          <div class="order-card__header">
+            <span class="order-card__product-name">${productName}</span>
+            <span class="order-card__price">${price}</span>
+          </div>
+          <div class="order-card__details">
+            <span class="order-card__detail">📅 ${formatDate(order.order_date)}</span>
+            <span class="order-card__detail order-card__detail--id">${escapeHtml(order.order_id)}</span>
+            <span class="order-card__status ${getStatusClass(order)}">${getStatusLabel(order)}</span>
+          </div>
+          ${eligible ? `
+            <button class="btn-smart-return" data-product-id="${escapeHtml(order.product_id)}" aria-label="Start Smart Return for ${productName}">
+              🔄 Smart Return
+            </button>
+          ` : ''}
+        `;
+
+        // Attach click handler for Smart Return button
+        if (eligible) {
+          const btn = card.querySelector('.btn-smart-return');
+          btn.addEventListener('click', function () {
+            startSmartReturn(this.dataset.productId);
+          });
+        }
+
+        return card;
+      }
+
+      /**
+       * Render empty state
+       */
+      function renderEmptyState() {
+        ordersContainer.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state__icon">📦</div>
+            <p class="empty-state__text">No orders in the last 30 days.</p>
+          </div>
+        `;
+      }
+
+      /**
+       * Render error state
+       */
+      function renderError(message) {
+        ordersContainer.innerHTML = `
+          <div class="error-state">
+            <div class="error-state__icon">⚠️</div>
+            <p class="error-state__text">${escapeHtml(message)}</p>
+            <button class="error-state__retry" onclick="location.reload()">Retry</button>
+          </div>
+        `;
+      }
+
+      /**
+       * Fetch and render orders
+       */
+      async function loadOrders() {
+        try {
+          const response = await fetch(`/api/orders/${encodeURIComponent(USER_ID)}`);
+
+          if (!response.ok) {
+            throw new Error(`Failed to load orders (${response.status})`);
+          }
+
+          const orders = await response.json();
+
+          if (!orders || orders.length === 0) {
+            renderEmptyState();
+            return;
+          }
+
+          // Fetch product details for all orders in parallel
+          const productPromises = orders.map(order => fetchProduct(order.product_id));
+          const products = await Promise.all(productPromises);
+
+          // Clear container and render cards
+          ordersContainer.innerHTML = '';
+
+          orders.forEach((order, index) => {
+            const card = renderOrderCard(order, products[index]);
+            ordersContainer.appendChild(card);
+          });
+
+        } catch (error) {
+          console.error('[Orders] Error loading orders:', error.message);
+          renderError('Unable to load orders. Please try again.');
+        }
+      }
+
+      // Initialize
+      checkSuccessStatus();
+      loadOrders();
+
+      // Expose startSmartReturn for potential external use
+      window.startSmartReturn = startSmartReturn;
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+{
+  "name": "amazon-hackon",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test tests/**/*.test.js",
+    "test:property": "node --test tests/**/*.property.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Jazzrahi/amazon-hackon.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Jazzrahi/amazon-hackon/issues"
+  },
+  "homepage": "https://github.com/Jazzrahi/amazon-hackon#readme",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "fast-check": "^4.8.0"
+  }
+}

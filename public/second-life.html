@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Second Life Store - Certified Refurbished Marketplace</title>
+  <style>
+    /* Amazon Color Scheme Variables */
+    :root {
+      --amazon-dark-navy: #232F3E;
+      --amazon-orange: #FF9900;
+      --amazon-white: #FFFFFF;
+      --amazon-light-gray: #F5F5F5;
+      --amazon-border: #DDD;
+      --amazon-text: #0F1111;
+      --amazon-text-secondary: #565959;
+      --grade-a-green: #067D62;
+      --grade-b-yellow: #B8860B;
+      --grade-c-orange: #CC5500;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Amazon Ember', Arial, sans-serif;
+      background-color: var(--amazon-light-gray);
+      color: var(--amazon-text);
+      line-height: 1.6;
+      min-width: 1024px;
+    }
+
+    /* Header */
+    .header {
+      background-color: var(--amazon-dark-navy);
+      padding: 14px 32px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .header__logo {
+      color: var(--amazon-white);
+      font-size: 22px;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .header__logo span {
+      color: var(--amazon-orange);
+    }
+
+    .header__nav {
+      display: flex;
+      gap: 24px;
+      margin-left: auto;
+    }
+
+    .header__nav a {
+      color: var(--amazon-white);
+      text-decoration: none;
+      font-size: 14px;
+      transition: color 0.2s;
+    }
+
+    .header__nav a:hover {
+      color: var(--amazon-orange);
+    }
+
+    .header__nav a.active {
+      color: var(--amazon-orange);
+      font-weight: 600;
+    }
+
+    /* Hero Section */
+    .hero {
+      background-color: var(--amazon-dark-navy);
+      padding: 32px;
+      text-align: center;
+      color: var(--amazon-white);
+    }
+
+    .hero__title {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .hero__title span {
+      color: var(--amazon-orange);
+    }
+
+    .hero__subtitle {
+      font-size: 15px;
+      opacity: 0.85;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* Main Content */
+    .main {
+      max-width: 1200px;
+      margin: 32px auto;
+      padding: 0 32px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+
+    .section-header__title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--amazon-dark-navy);
+    }
+
+    .section-header__count {
+      font-size: 14px;
+      color: var(--amazon-text-secondary);
+    }
+
+    /* Card Grid */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+
+    @media (max-width: 1024px) {
+      .card-grid {
+        grid-template-columns: 1fr;
+        max-width: 360px;
+        margin: 0 auto;
+      }
+    }
+
+    /* Product Card */
+    .product-card {
+      background-color: var(--amazon-white);
+      border: 1px solid var(--amazon-border);
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: box-shadow 0.2s, transform 0.15s;
+      min-width: 280px;
+      max-width: 360px;
+      width: 100%;
+    }
+
+    .product-card:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      transform: translateY(-2px);
+    }
+
+    .product-card:focus {
+      outline: 2px solid var(--amazon-orange);
+      outline-offset: 2px;
+    }
+
+    .product-card__image {
+      background-color: #F8F8F8;
+      height: 180px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-bottom: 1px solid var(--amazon-border);
+      position: relative;
+    }
+
+    .product-card__image-placeholder {
+      font-size: 48px;
+    }
+
+    .product-card__badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--amazon-white);
+    }
+
+    .product-card__badge--a {
+      background-color: var(--grade-a-green);
+    }
+
+    .product-card__badge--b {
+      background-color: var(--grade-b-yellow);
+    }
+
+    .product-card__badge--c {
+      background-color: var(--grade-c-orange);
+    }
+
+    .product-card__body {
+      padding: 16px;
+    }
+
+    .product-card__name {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--amazon-text);
+      margin-bottom: 10px;
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .product-card__pricing {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .product-card__resale-price {
+      font-size: 20px;
+      font-weight: 700;
+      color: #B12704;
+    }
+
+    .product-card__original-price {
+      font-size: 14px;
+      color: var(--amazon-text-secondary);
+      text-decoration: line-through;
+    }
+
+    .product-card__grade {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .product-card__grade-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .product-card__grade-dot--a {
+      background-color: var(--grade-a-green);
+    }
+
+    .product-card__grade-dot--b {
+      background-color: var(--grade-b-yellow);
+    }
+
+    .product-card__grade-dot--c {
+      background-color: var(--grade-c-orange);
+    }
+
+    .product-card__carbon {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--grade-a-green);
+      font-weight: 500;
+    }
+
+    .product-card__cta {
+      display: block;
+      width: 100%;
+      margin-top: 14px;
+      padding: 10px 16px;
+      background-color: var(--amazon-orange);
+      color: var(--amazon-dark-navy);
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      transition: background-color 0.2s;
+    }
+
+    .product-card__cta:hover {
+      background-color: #E68A00;
+    }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 80px 32px;
+      background-color: var(--amazon-white);
+      border-radius: 8px;
+      border: 1px solid var(--amazon-border);
+    }
+
+    .empty-state__icon {
+      font-size: 56px;
+      margin-bottom: 16px;
+    }
+
+    .empty-state__message {
+      font-size: 18px;
+      color: var(--amazon-text-secondary);
+      font-weight: 500;
+    }
+
+    /* Loading State */
+    .loading-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 60px 20px;
+    }
+
+    .loading-state__spinner {
+      width: 36px;
+      height: 36px;
+      border: 4px solid var(--amazon-border);
+      border-top-color: var(--amazon-orange);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    .loading-state__text {
+      margin-top: 14px;
+      font-size: 14px;
+      color: var(--amazon-text-secondary);
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Error State */
+    .error-state {
+      text-align: center;
+      padding: 60px 20px;
+      background-color: var(--amazon-white);
+      border-radius: 8px;
+      border: 1px solid #FCE8E8;
+    }
+
+    .error-state__icon {
+      font-size: 36px;
+      margin-bottom: 8px;
+    }
+
+    .error-state__text {
+      font-size: 14px;
+      color: #CC0000;
+      margin-bottom: 14px;
+    }
+
+    .error-state__retry {
+      background-color: var(--amazon-dark-navy);
+      color: var(--amazon-white);
+      border: none;
+      border-radius: 6px;
+      padding: 10px 24px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .error-state__retry:hover {
+      background-color: #37475A;
+    }
+
+    /* Modal Overlay */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.6);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 32px;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal {
+      background-color: var(--amazon-white);
+      border-radius: 10px;
+      max-width: 680px;
+      width: 100%;
+      max-height: 85vh;
+      overflow-y: auto;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      animation: modalSlideIn 0.25s ease-out;
+    }
+
+    @keyframes modalSlideIn {
+      from {
+        opacity: 0;
+        transform: scale(0.95) translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+
+    .modal__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--amazon-border);
+      background-color: var(--amazon-dark-navy);
+      border-radius: 10px 10px 0 0;
+    }
+
+    .modal__title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--amazon-white);
+    }
+
+    .modal__close {
+      background: none;
+      border: none;
+      font-size: 24px;
+      color: var(--amazon-white);
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: background-color 0.2s;
+    }
+
+    .modal__close:hover {
+      background-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .modal__body {
+      padding: 24px;
+    }
+
+    .modal__product-name {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--amazon-text);
+      margin-bottom: 16px;
+    }
+
+    .modal__section {
+      margin-bottom: 20px;
+    }
+
+    .modal__section-title {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--amazon-text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .modal__grade-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--amazon-white);
+    }
+
+    .modal__grade-badge--a {
+      background-color: var(--grade-a-green);
+    }
+
+    .modal__grade-badge--b {
+      background-color: var(--grade-b-yellow);
+    }
+
+    .modal__grade-badge--c {
+      background-color: var(--grade-c-orange);
+    }
+
+    .modal__grade-explanation {
+      margin-top: 8px;
+      font-size: 14px;
+      color: var(--amazon-text-secondary);
+      font-style: italic;
+    }
+
+    .modal__pricing {
+      display: flex;
+      align-items: baseline;
+      gap: 16px;
+    }
+
+    .modal__resale-price {
+      font-size: 26px;
+      font-weight: 700;
+      color: #B12704;
+    }
+
+    .modal__original-price {
+      font-size: 16px;
+      color: var(--amazon-text-secondary);
+      text-decoration: line-through;
+    }
+
+    .modal__savings-tag {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--grade-a-green);
+      background-color: #E7F7E9;
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+
+    .modal__carbon {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 15px;
+      color: var(--grade-a-green);
+      font-weight: 600;
+      padding: 12px 16px;
+      background-color: #E7F7E9;
+      border-radius: 6px;
+    }
+
+    .modal__photos {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .modal__photo-placeholder {
+      width: 80px;
+      height: 80px;
+      background-color: #F0F0F0;
+      border: 1px solid var(--amazon-border);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+
+    .modal__cta {
+      display: block;
+      width: 100%;
+      padding: 14px 20px;
+      background-color: var(--amazon-orange);
+      color: var(--amazon-dark-navy);
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      margin-top: 8px;
+      transition: background-color 0.2s;
+    }
+
+    .modal__cta:hover {
+      background-color: #E68A00;
+    }
+
+    /* Footer */
+    .footer {
+      background-color: var(--amazon-dark-navy);
+      color: var(--amazon-white);
+      text-align: center;
+      padding: 18px;
+      margin-top: 48px;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <a href="/" class="header__logo">Second <span>Life</span> Commerce</a>
+    <nav class="header__nav">
+      <a href="/product.html">Products</a>
+      <a href="/orders.html">My Orders</a>
+      <a href="/second-life.html" class="active">Second Life Store</a>
+    </nav>
+  </header>
+
+  <!-- Hero Banner -->
+  <section class="hero">
+    <h1 class="hero__title">♻️ <span>Second Life</span> Marketplace</h1>
+    <p class="hero__subtitle">AI-certified refurbished products at great prices. Every purchase saves carbon emissions.</p>
+  </section>
+
+  <!-- Main Content -->
+  <main class="main">
+    <div class="section-header">
+      <h2 class="section-header__title">Available Refurbished Items</h2>
+      <span class="section-header__count" id="item-count"></span>
+    </div>
+
+    <div id="items-container">
+      <div class="loading-state">
+        <div class="loading-state__spinner"></div>
+        <p class="loading-state__text">Loading marketplace items...</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- Item Detail Modal -->
+  <div class="modal-overlay" id="item-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal">
+      <div class="modal__header">
+        <h3 class="modal__title" id="modal-title">AI Condition Report</h3>
+        <button class="modal__close" id="modal-close-btn" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal__body" id="modal-body">
+        <!-- Dynamic content injected here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>Second Life Commerce — Amazon HackOn Prototype | Certified Refurbished Marketplace</p>
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      const itemsContainer = document.getElementById('items-container');
+      const itemCountEl = document.getElementById('item-count');
+      const modalOverlay = document.getElementById('item-modal');
+      const modalBody = document.getElementById('modal-body');
+      const modalCloseBtn = document.getElementById('modal-close-btn');
+
+      /**
+       * Returns the Trust Badge color class for a given grade.
+       * @param {string} grade - "A", "B", or "C"
+       * @returns {string} CSS modifier class suffix
+       */
+      function getBadgeClass(grade) {
+        switch (grade) {
+          case 'A': return 'a';
+          case 'B': return 'b';
+          case 'C': return 'c';
+          default: return 'b';
+        }
+      }
+
+      /**
+       * Returns a human-readable grade label.
+       * @param {string} grade - "A", "B", or "C"
+       * @returns {string}
+       */
+      function getGradeLabel(grade) {
+        switch (grade) {
+          case 'A': return 'Grade A — Like New';
+          case 'B': return 'Grade B — Good';
+          case 'C': return 'Grade C — Fair';
+          default: return `Grade ${grade}`;
+        }
+      }
+
+      /**
+       * Returns grade explanation text for the modal.
+       * @param {string} grade
+       * @returns {string}
+       */
+      function getGradeExplanation(grade) {
+        switch (grade) {
+          case 'A': return 'Like-new condition with minimal cosmetic wear. Fully inspected and certified.';
+          case 'B': return 'Moderate cosmetic wear but fully functional. All features tested and working.';
+          case 'C': return 'Significant wear or minor functional issues. Priced accordingly for value buyers.';
+          default: return 'Condition assessed by AI grading system.';
+        }
+      }
+
+      /**
+       * Returns a category-specific emoji for the product image placeholder.
+       * @param {string} category
+       * @returns {string}
+       */
+      function getCategoryIcon(category) {
+        switch (category) {
+          case 'clothing': return '👕';
+          case 'electronics': return '📱';
+          case 'accessories': return '👜';
+          default: return '📦';
+        }
+      }
+
+      /**
+       * Escapes HTML entities to prevent XSS.
+       * @param {string} str
+       * @returns {string}
+       */
+      function escapeHtml(str) {
+        if (!str) return '';
+        const div = document.createElement('div');
+        div.appendChild(document.createTextNode(String(str)));
+        return div.innerHTML;
+      }
+
+      /**
+       * Renders a single product card element.
+       * @param {Object} item - Product item data
+       * @returns {HTMLElement}
+       */
+      function renderCard(item) {
+        const badgeClass = getBadgeClass(item.grade);
+        const card = document.createElement('div');
+        card.className = 'product-card';
+        card.setAttribute('tabindex', '0');
+        card.setAttribute('role', 'button');
+        card.setAttribute('aria-label', `View details for ${item.name}`);
+
+        card.innerHTML = `
+          <div class="product-card__image">
+            <span class="product-card__image-placeholder">${getCategoryIcon(item.category)}</span>
+            <span class="product-card__badge product-card__badge--${badgeClass}">Grade ${escapeHtml(item.grade)}</span>
+          </div>
+          <div class="product-card__body">
+            <h3 class="product-card__name">${escapeHtml(item.name)}</h3>
+            <div class="product-card__pricing">
+              <span class="product-card__resale-price">₹${item.resale_price.toLocaleString('en-IN')}</span>
+              <span class="product-card__original-price">₹${item.price.toLocaleString('en-IN')}</span>
+            </div>
+            <div class="product-card__grade">
+              <span class="product-card__grade-dot product-card__grade-dot--${badgeClass}"></span>
+              <span>${getGradeLabel(item.grade)}</span>
+            </div>
+            <div class="product-card__carbon">
+              <span>🌱</span>
+              <span>Saved ${item.carbon_savings_kg} kg of CO2</span>
+            </div>
+            <button class="product-card__cta">View Condition Report</button>
+          </div>
+        `;
+
+        // Click handler opens modal
+        card.addEventListener('click', function () {
+          openModal(item);
+        });
+
+        // Keyboard accessibility
+        card.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            openModal(item);
+          }
+        });
+
+        return card;
+      }
+
+      /**
+       * Opens the item detail modal with full AI Condition Report.
+       * @param {Object} item - Product item data
+       */
+      function openModal(item) {
+        const badgeClass = getBadgeClass(item.grade);
+        const savingsPercent = Math.round(((item.price - item.resale_price) / item.price) * 100);
+
+        modalBody.innerHTML = `
+          <h2 class="modal__product-name">${escapeHtml(item.name)}</h2>
+
+          <div class="modal__section">
+            <p class="modal__section-title">AI Condition Grade</p>
+            <span class="modal__grade-badge modal__grade-badge--${badgeClass}">
+              ✓ ${getGradeLabel(item.grade)}
+            </span>
+            <p class="modal__grade-explanation">${getGradeExplanation(item.grade)}</p>
+          </div>
+
+          <div class="modal__section">
+            <p class="modal__section-title">Inspection Photos</p>
+            <div class="modal__photos">
+              <div class="modal__photo-placeholder">${getCategoryIcon(item.category)}</div>
+              <div class="modal__photo-placeholder">📋</div>
+              <div class="modal__photo-placeholder">🔍</div>
+            </div>
+          </div>
+
+          <div class="modal__section">
+            <p class="modal__section-title">Pricing</p>
+            <div class="modal__pricing">
+              <span class="modal__resale-price">₹${item.resale_price.toLocaleString('en-IN')}</span>
+              <span class="modal__original-price">₹${item.price.toLocaleString('en-IN')}</span>
+              <span class="modal__savings-tag">${savingsPercent}% off</span>
+            </div>
+          </div>
+
+          <div class="modal__section">
+            <p class="modal__section-title">Environmental Impact</p>
+            <div class="modal__carbon">
+              <span>🌍</span>
+              <span>Saved ${item.carbon_savings_kg} kg of CO2 by choosing refurbished</span>
+            </div>
+          </div>
+
+          <button class="modal__cta">Add to Cart</button>
+        `;
+
+        modalOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        modalCloseBtn.focus();
+      }
+
+      /**
+       * Closes the item detail modal.
+       */
+      function closeModal() {
+        modalOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+
+      // Modal close handlers
+      modalCloseBtn.addEventListener('click', closeModal);
+      modalOverlay.addEventListener('click', function (e) {
+        if (e.target === modalOverlay) {
+          closeModal();
+        }
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && modalOverlay.classList.contains('active')) {
+          closeModal();
+        }
+      });
+
+      /**
+       * Renders the empty state message.
+       */
+      function renderEmptyState() {
+        itemsContainer.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state__icon">🏪</div>
+            <p class="empty-state__message">No items currently available. Check back soon!</p>
+          </div>
+        `;
+        itemCountEl.textContent = '';
+      }
+
+      /**
+       * Renders an error state with retry option.
+       * @param {string} message
+       */
+      function renderError(message) {
+        itemsContainer.innerHTML = `
+          <div class="error-state">
+            <div class="error-state__icon">⚠️</div>
+            <p class="error-state__text">${escapeHtml(message)}</p>
+            <button class="error-state__retry" onclick="location.reload()">Retry</button>
+          </div>
+        `;
+        itemCountEl.textContent = '';
+      }
+
+      /**
+       * Fetches items from GET /api/second-life and renders the card grid.
+       */
+      async function loadItems() {
+        try {
+          const response = await fetch('/api/second-life');
+          if (!response.ok) {
+            throw new Error(`Failed to load items (${response.status})`);
+          }
+
+          const items = await response.json();
+
+          if (!items || items.length === 0) {
+            renderEmptyState();
+            return;
+          }
+
+          // Update count
+          itemCountEl.textContent = `${items.length} item${items.length !== 1 ? 's' : ''} available`;
+
+          // Render card grid
+          itemsContainer.innerHTML = '';
+          const grid = document.createElement('div');
+          grid.className = 'card-grid';
+
+          items.forEach(function (item) {
+            const card = renderCard(item);
+            grid.appendChild(card);
+          });
+
+          itemsContainer.appendChild(grid);
+
+        } catch (error) {
+          console.error('[SecondLife] Error loading items:', error.message);
+          renderError('Unable to load marketplace items. Please try again.');
+        }
+      }
+
+      // Initialize on page load
+      document.addEventListener('DOMContentLoaded', loadItems);
+    })();
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Detail - Second Life Commerce</title>
+  <style>
+    /* Amazon Color Scheme Variables */
+    :root {
+      --amazon-dark-navy: #232F3E;
+      --amazon-orange: #FF9900;
+      --amazon-white: #FFFFFF;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Amazon Ember', Arial, sans-serif;
+      background-color: #F5F5F5;
+      color: #0F1111;
+      line-height: 1.6;
+    }
+
+    /* Header */
+    .header {
+      background-color: var(--amazon-dark-navy);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .header__logo {
+      color: var(--amazon-white);
+      font-size: 22px;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .header__logo span {
+      color: var(--amazon-orange);
+    }
+
+    .header__nav {
+      display: flex;
+      gap: 20px;
+      margin-left: auto;
+    }
+
+    .header__nav a {
+      color: var(--amazon-white);
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    .header__nav a:hover {
+      color: var(--amazon-orange);
+    }
+
+    /* Main Content */
+    .main {
+      max-width: 1200px;
+      margin: 24px auto;
+      padding: 0 24px;
+    }
+
+    .product-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      background-color: var(--amazon-white);
+      padding: 32px;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    @media (max-width: 768px) {
+      .product-container {
+        grid-template-columns: 1fr;
+        gap: 24px;
+      }
+    }
+
+    /* Product Image */
+    .product-image {
+      background-color: #F8F8F8;
+      border: 1px solid #E8E8E8;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 400px;
+      color: #888;
+      font-size: 16px;
+    }
+
+    .product-image__placeholder {
+      text-align: center;
+    }
+
+    .product-image__placeholder-icon {
+      font-size: 64px;
+      display: block;
+      margin-bottom: 12px;
+    }
+
+    /* Product Info */
+    .product-info {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .product-info__category {
+      font-size: 13px;
+      color: #565959;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .product-info__name {
+      font-size: 24px;
+      font-weight: 700;
+      color: #0F1111;
+      line-height: 1.3;
+    }
+
+    .product-info__price {
+      font-size: 28px;
+      font-weight: 700;
+      color: #B12704;
+    }
+
+    .product-info__price-symbol {
+      font-size: 14px;
+      vertical-align: top;
+      position: relative;
+      top: 4px;
+    }
+
+    .product-info__details {
+      font-size: 14px;
+      color: #565959;
+      margin-top: 8px;
+    }
+
+    .product-info__details p {
+      margin-bottom: 6px;
+    }
+
+    .product-info__shipping {
+      color: #007600;
+      font-weight: 600;
+    }
+
+    /* Buy Now Button */
+    .btn-buy-now {
+      display: block;
+      width: 100%;
+      padding: 12px 20px;
+      margin-top: 16px;
+      background-color: var(--amazon-orange);
+      color: var(--amazon-dark-navy);
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .btn-buy-now:hover {
+      background-color: #E68A00;
+    }
+
+    .btn-buy-now:active {
+      background-color: #CC7A00;
+    }
+
+    /* Eco Alert Styles */
+    .eco-alert {
+      margin-top: 16px;
+      padding: 14px 18px;
+      border-radius: 8px;
+      font-family: 'Amazon Ember', Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .eco-alert__icon {
+      flex-shrink: 0;
+      width: 20px;
+      height: 20px;
+    }
+
+    .eco-alert__content {
+      flex: 1;
+    }
+
+    .eco-alert__title {
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .eco-alert__text {
+      margin: 0;
+    }
+
+    .eco-alert__sizing {
+      margin-top: 8px;
+      font-style: italic;
+      font-size: 13px;
+    }
+
+    /* High Return Risk Variant */
+    .eco-alert--high-risk {
+      background-color: var(--amazon-orange);
+      color: var(--amazon-dark-navy);
+      border: 1px solid #e68a00;
+    }
+
+    .eco-alert--high-risk .eco-alert__title {
+      color: var(--amazon-dark-navy);
+    }
+
+    /* Standard Alert Variant */
+    .eco-alert--standard {
+      background-color: #FFF8E8;
+      color: var(--amazon-dark-navy);
+      border: 1px solid #FFD580;
+    }
+
+    .eco-alert--standard .eco-alert__title {
+      color: #6B5900;
+    }
+
+    /* Footer */
+    .footer {
+      background-color: var(--amazon-dark-navy);
+      color: var(--amazon-white);
+      text-align: center;
+      padding: 16px;
+      margin-top: 40px;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body data-product-id="prod_001">
+
+  <!-- Header -->
+  <header class="header">
+    <a href="/" class="header__logo">Second <span>Life</span> Commerce</a>
+    <nav class="header__nav">
+      <a href="/orders.html">My Orders</a>
+      <a href="/second-life.html">Second Life Store</a>
+    </nav>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main">
+    <div class="product-container">
+      <!-- Product Image -->
+      <div class="product-image">
+        <div class="product-image__placeholder">
+          <span class="product-image__placeholder-icon">📷</span>
+          <p>Product Image</p>
+        </div>
+      </div>
+
+      <!-- Product Info -->
+      <div class="product-info">
+        <p class="product-info__category" id="product-category">Loading...</p>
+        <h1 class="product-info__name" id="product-name">Loading product...</h1>
+        <p class="product-info__price" id="product-price">
+          <span class="product-info__price-symbol">₹</span>---
+        </p>
+        <div class="product-info__details">
+          <p class="product-info__shipping">✓ FREE Delivery</p>
+          <p id="product-return-shipping"></p>
+        </div>
+
+        <!-- Buy Now Button -->
+        <button class="btn-buy-now" id="buy-now-btn">Buy Now</button>
+
+        <!-- Eco Alert Container — injected below Buy Now button -->
+        <div id="eco-alert-container"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>Second Life Commerce — Amazon HackOn Prototype</p>
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      /**
+       * Renders the Eco Alert banner below the "Buy Now" button.
+       * Fetches product data from GET /api/product/:id and injects alert based on return risk.
+       * @param {string} productId - The product ID to fetch
+       */
+      async function renderEcoAlert(productId) {
+        try {
+          const response = await fetch(`/api/product/${productId}`);
+          if (!response.ok) throw new Error(`API error: ${response.status}`);
+          const product = await response.json();
+
+          // Update product details on page
+          updateProductDetails(product);
+
+          // Determine alert variant
+          const isHighRisk = product.high_return_risk === true;
+          const variant = isHighRisk ? 'eco-alert--high-risk' : 'eco-alert--standard';
+          const iconEmoji = isHighRisk ? '⚠️' : 'ℹ️';
+
+          // Build sizing advice HTML (only for clothing category)
+          let sizingHtml = '';
+          if (product.category === 'clothing' && product.sizing_advice) {
+            sizingHtml = `
+              <p class="eco-alert__sizing">
+                👕 ${escapeHtml(product.sizing_advice)}
+              </p>`;
+          }
+
+          // Build and inject alert HTML
+          const alertHtml = `
+            <div class="eco-alert ${variant}">
+              <span class="eco-alert__icon">${iconEmoji}</span>
+              <div class="eco-alert__content">
+                <div class="eco-alert__title">
+                  ${isHighRisk ? 'High Return Rate' : 'Return Info'}
+                </div>
+                <p class="eco-alert__text">
+                  ${product.return_rate}% of customers return this item
+                </p>
+                ${sizingHtml}
+              </div>
+            </div>`;
+
+          document.getElementById('eco-alert-container').innerHTML = alertHtml;
+        } catch (error) {
+          // Silently fail — do not disrupt product page (Req 7.6)
+          console.error('[EcoAlert] Failed to render:', error.message);
+        }
+      }
+
+      /**
+       * Updates the product detail fields on the page.
+       * @param {Object} product - The product data from the API
+       */
+      function updateProductDetails(product) {
+        document.getElementById('product-name').textContent = product.name;
+        document.getElementById('product-category').textContent = product.category;
+        document.getElementById('product-price').innerHTML =
+          `<span class="product-info__price-symbol">₹</span>${product.price.toLocaleString('en-IN')}`;
+        document.getElementById('product-return-shipping').textContent =
+          `Return shipping: ₹${product.return_shipping_cost}`;
+      }
+
+      /**
+       * Escapes HTML entities to prevent XSS.
+       * @param {string} str - The string to escape
+       * @returns {string} The escaped string
+       */
+      function escapeHtml(str) {
+        if (!str) return '';
+        const div = document.createElement('div');
+        div.appendChild(document.createTextNode(String(str)));
+        return div.innerHTML;
+      }
+
+      // Initialize on DOMContentLoaded
+      document.addEventListener('DOMContentLoaded', function () {
+        const productId = document.body.dataset.productId || 'prod_001';
+        renderEcoAlert(productId);
+      });
+    })();
+  </script>
+
+</body>
+</html>
