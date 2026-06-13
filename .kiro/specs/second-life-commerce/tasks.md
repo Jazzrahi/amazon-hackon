@@ -6,15 +6,15 @@ This plan implements a full-stack localhost prototype for an AI-Powered Returns 
 
 ## Tasks
 
-- [ ] 1. Set up project structure and initialize dependencies
-  - [ ] 1.1 Initialize Node.js project and install dependencies
+- [x] 1. Set up project structure and initialize dependencies
+  - [x] 1.1 Initialize Node.js project and install dependencies
     - Run `npm init` and install express, cors, and fast-check (dev)
     - Create directory structure: `/src/services/`, `/src/routes/`, `/public/`, `/data/`, `/tests/`
     - Create `server.js` entry point with Express app listening on port 3000
     - Add `npm start`, `npm test`, and `npm run test:property` scripts to package.json
     - _Requirements: 9.7_
 
-  - [ ] 1.2 Create the mock JSON data store with seed data
+  - [x] 1.2 Create the mock JSON data store with seed data
     - Create `/data/db.json` with users (6+), products (9+), demand records, delivery_routes, and orders
     - Ensure at least 2 users with trust_score < 50, 2 between 50-80, 2 above 80
     - Ensure at least 3 products per category (clothing, electronics, accessories) with varied high_return_risk
@@ -24,7 +24,7 @@ This plan implements a full-stack localhost prototype for an AI-Powered Returns 
     - Include orders within last 30 days for demo users
     - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5, 10.6, 10.8_
 
-  - [ ] 1.3 Implement the Data Access Layer (`/src/services/dataStore.js`)
+  - [x] 1.3 Implement the Data Access Layer (`/src/services/dataStore.js`)
     - Implement `readDB()` and `writeDB(data)` for synchronous file-based persistence
     - Implement `getUserById(userId)`, `getProductById(productId)`
     - Implement `getSecondLifeItems()` returning items with inventory_owner = "amazon"
@@ -33,42 +33,42 @@ This plan implements a full-stack localhost prototype for an AI-Powered Returns 
     - Implement `markItemAsAmazonOwned(productId)` setting inventory_owner to "amazon"
     - _Requirements: 10.1, 10.7, 4.3, 4.5_
 
-- [ ] 2. Implement core backend services
-  - [ ] 2.1 Implement AI Grading Engine (`/src/services/gradingEngine.js`)
+- [x] 2. Implement core backend services
+  - [x] 2.1 Implement AI Grading Engine (`/src/services/gradingEngine.js`)
     - Implement `gradeItem({ imageCount, totalFileSize, fileType })` function
     - Use deterministic hash-based logic: grade A (hash%3===0), B (hash%3===1), C (hash%3===2)
     - Return `{ grade: "A"|"B"|"C", explanation: string }` with explanation ≤ 200 chars
     - Implement upload validation: reject unsupported formats (not JPEG/PNG/MP4), reject oversized files
     - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6_
 
-  - [ ]* 2.2 Write property tests for AI Grading Engine
+  - [x] 2.2 Write property tests for AI Grading Engine
     - **Property 1: Grading Output Invariant** — For any valid upload params, gradeItem returns exactly one grade from {A,B,C} and explanation ≤ 200 chars
     - **Property 2: Upload Validation Rejects Invalid Formats** — For any invalid format string, validator rejects with error
     - **Validates: Requirements 1.3, 1.4, 1.5**
 
-  - [ ] 2.3 Implement Pricing Engine (`/src/services/pricingEngine.js`)
+  - [x] 2.3 Implement Pricing Engine (`/src/services/pricingEngine.js`)
     - Implement `calculateResalePrice(originalPrice, grade)` function
     - Grade A: 15% markdown, Grade B: 30% markdown, Grade C: 50% markdown
     - Return `{ resalePrice, markdownPercent, markdownAmount }` with Math.round()
     - Throw error for price ≤ 0 or unrecognized grade
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7_
 
-  - [ ]* 2.4 Write property tests for Pricing Engine
+  - [x] 2.4 Write property tests for Pricing Engine
     - **Property 3: Pricing Calculation Correctness** — For any positive price and valid grade, resalePrice = Math.round(price × (1 - markdownRate))
     - **Property 4: Pricing Rejects Invalid Inputs** — For price ≤ 0 or invalid grade, throws error
     - **Validates: Requirements 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7**
 
-  - [ ] 2.5 Implement Demand Predictor (`/src/services/demandPredictor.js`)
+  - [x] 2.5 Implement Demand Predictor (`/src/services/demandPredictor.js`)
     - Implement `getDemandScore(category, region, demandData)` function
     - Return `{ demandScore, classification: "high"|"low" }` with threshold at 60
     - Default to score 0, classification "low" when no matching entry exists
     - _Requirements: 3.1, 3.4, 3.6_
 
-  - [ ]* 2.6 Write property tests for Demand Predictor
+  - [x] 2.6 Write property tests for Demand Predictor
     - **Property 5: Demand Classification Threshold** — For any score 0-100, classify "high" when ≥ 60, "low" when < 60; missing entries default to 0/"low"
     - **Validates: Requirements 3.1, 3.4, 3.6**
 
-  - [ ] 2.7 Implement Return Router (`/src/services/returnRouter.js`)
+  - [x] 2.7 Implement Return Router (`/src/services/returnRouter.js`)
     - Implement `routeReturn({ trustScore, returnShippingCost, productPrice, demandClassification })` function
     - Priority 1: trustScore < 50 → "standard_return" (short-circuit)
     - Priority 2: shippingCost/price > 0.40 → "green_credit" with offer = Math.round(price × 0.50)
@@ -77,26 +77,26 @@ This plan implements a full-stack localhost prototype for an AI-Powered Returns 
     - Return decision, rule, trustScore, shippingRatio, offerAmount
     - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 8.6_
 
-  - [ ]* 2.8 Write property tests for Return Router
+  - [x] 2.8 Write property tests for Return Router
     - **Property 6: Return Routing Priority Rules** — For any combination of trustScore (0-100), shippingCost, price (positive), demandClassification, verify strict priority ordering and correct decision
     - **Validates: Requirements 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 3.2, 3.3**
 
-  - [ ] 2.9 Implement Reverse Logistics (`/src/services/reverseLogistics.js`)
+  - [x] 2.9 Implement Reverse Logistics (`/src/services/reverseLogistics.js`)
     - Implement `schedulePickup(sellerArea, deliveryRoutes)` function
     - Match seller area to available route, return pickup_day, time_window, driver_name
     - Return `{ scheduled: false, message: "..." }` when no matching route
     - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5_
 
-  - [ ]* 2.10 Write property tests for Reverse Logistics
+  - [x] 2.10 Write property tests for Reverse Logistics
     - **Property 12: Reverse Logistics Area Matching** — For any seller area matching a route, returns scheduled=true with pickup details
     - **Property 13: Reverse Logistics Unavailability** — For any unmatched area, returns scheduled=false with message
     - **Validates: Requirements 11.1, 11.2, 11.3, 11.5**
 
-- [ ] 3. Checkpoint - Core services validation
+- [x] 3. Checkpoint - Core services validation
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 4. Implement API routes and server wiring
-  - [ ] 4.1 Implement API routes (`/src/routes/api.js`)
+- [x] 4. Implement API routes and server wiring
+  - [x] 4.1 Implement API routes (`/src/routes/api.js`)
     - Implement `GET /api/product/:id` — return product JSON (200) or error (404)
     - Implement `POST /api/process-return` — validate body, orchestrate grading → pricing → demand → routing → logistics, return full response (200) or error (400)
     - Implement `GET /api/second-life` — return all items with inventory_owner = "amazon"
@@ -105,18 +105,18 @@ This plan implements a full-stack localhost prototype for an AI-Powered Returns 
     - Add global error handling middleware
     - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.7_
 
-  - [ ]* 4.2 Write property tests for API endpoints
+  - [x] 4.2 Write property tests for API endpoints
     - **Property 9: Product API Response Structure** — For any existing product ID, GET returns 200 with all required fields
     - **Property 10: Product API 404 for Missing IDs** — For any non-existent ID, GET returns 404 with error field
     - **Property 11: Process-Return API Validation** — For any request missing user_id or product_id, POST returns 400 with error
     - **Validates: Requirements 9.1, 9.3, 9.4, 9.6**
 
-  - [ ]* 4.3 Write property tests for Green Credits and Data Persistence
+  - [x] 4.3 Write property tests for Green Credits and Data Persistence
     - **Property 7: Green Credits Balance Update** — For any user balance B and credit C, balance becomes B + C and item becomes amazon-owned
     - **Property 8: Data Persistence Round-Trip** — For any valid mutation, subsequent read reflects written values
     - **Validates: Requirements 4.1, 4.3, 4.5, 10.7**
 
-  - [ ] 4.4 Wire Express server (`server.js`)
+  - [x] 4.4 Wire Express server (`server.js`)
     - Import and mount API routes
     - Serve static files from `/public/`
     - Add CORS middleware
@@ -125,11 +125,11 @@ This plan implements a full-stack localhost prototype for an AI-Powered Returns 
     - Start server on port 3000
     - _Requirements: 9.7_
 
-- [ ] 5. Checkpoint - Backend API validation
+- [x] 5. Checkpoint - Backend API validation
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 6. Implement frontend pages
-  - [ ] 6.1 Create Product Page with Eco Alert (`public/product.html`)
+  - [-] 6.1 Create Product Page with Eco Alert (`public/product.html`)
     - Build product detail page with "Buy Now" button
     - Implement Eco Alert banner injection below "Buy Now" using fetch to GET /api/product/:id
     - Apply orange background (#FF9900) for high_return_risk items, light background for standard
@@ -139,7 +139,7 @@ This plan implements a full-stack localhost prototype for an AI-Powered Returns 
     - Use Amazon color scheme CSS variables
     - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6_
 
-  - [ ] 6.2 Create Seller Portal - Order History (`public/orders.html`)
+  - [-] 6.2 Create Seller Portal - Order History (`public/orders.html`)
     - Build mobile-optimized layout (max-width: 480px)
     - Fetch orders from GET /api/orders/:userId
     - Display orders from last 30 days with product name, order date, price, order ID
@@ -148,7 +148,7 @@ This plan implements a full-stack localhost prototype for an AI-Powered Returns 
     - Use Amazon color scheme
     - _Requirements: 5.1, 5.4_
 
-  - [ ] 6.3 Create Seller Portal - Return Flow (`public/return-flow.html`)
+  - [-] 6.3 Create Seller Portal - Return Flow (`public/return-flow.html`)
     - Build mobile-optimized layout (max-width: 480px)
     - Implement file upload interface (simulating camera capture) accepting JPEG, PNG, MP4
     - Implement processReturn() JS handler calling POST /api/process-return
@@ -159,7 +159,7 @@ This plan implements a full-stack localhost prototype for an AI-Powered Returns 
     - Display error card with retry button on failure
     - _Requirements: 5.2, 5.3, 5.5, 5.6, 5.7, 5.8_
 
-  - [ ] 6.4 Create Buyer Portal - Second Life Storefront (`public/second-life.html`)
+  - [x] 6.4 Create Buyer Portal - Second Life Storefront (`public/second-life.html`)
     - Build desktop-optimized layout (min-width: 1024px)
     - Fetch items from GET /api/second-life
     - Render responsive card grid (3 columns desktop, 1 column mobile, card width 280-360px)
@@ -171,7 +171,7 @@ This plan implements a full-stack localhost prototype for an AI-Powered Returns 
     - Use Amazon color scheme: Dark Navy headers, Orange CTAs, White backgrounds
     - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7_
 
-- [ ] 7. Final checkpoint - Full integration
+- [x] 7. Final checkpoint - Full integration
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes
