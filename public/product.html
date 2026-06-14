@@ -588,11 +588,17 @@
     </div>
   </header>
 
-  <!-- Product Switcher Sub-nav -->
+  <!-- Amazon Sub-nav -->
   <div class="subnav">
-    <div class="subnav__inner">
-      <div class="product-switcher" id="product-switcher"></div>
-    </div>
+    <a href="#">☰ All</a>
+    <a href="#">Fresh</a>
+    <a href="#">Amazon miniTV</a>
+    <a href="#">Sell</a>
+    <a href="#">Best Sellers</a>
+    <a href="#">Mobiles</a>
+    <a href="#">Today's Deals</a>
+    <a href="#">Customer Service</a>
+    <a href="#">Electronics</a>
   </div>
 
   <!-- Breadcrumb -->
@@ -692,6 +698,16 @@
         <tr><td>Seller</td><td>Amazon.in</td></tr>
       </table>
     </div>
+
+    <!-- Related Products -->
+    <div class="related-section" style="margin-top: 40px;">
+      <h2 style="font-size: 18px; color: #C45500; margin-bottom: 16px;">Customers who viewed this item also viewed</h2>
+      <div class="related-carousel" id="related-carousel" style="display: flex; gap: 16px; overflow-x: auto; padding-bottom: 16px;">
+        <div class="loading-placeholder" style="width: 150px; height: 200px;"></div>
+        <div class="loading-placeholder" style="width: 150px; height: 200px;"></div>
+        <div class="loading-placeholder" style="width: 150px; height: 200px;"></div>
+      </div>
+    </div>
   </main>
 
   <!-- Footer -->
@@ -703,37 +719,9 @@
     (function () {
       'use strict';
 
-      const DEMO_PRODUCTS = [
-        { id: 'prod_001', label: '👕 Kurta Set' },
-        { id: 'prod_002', label: '🥻 Silk Saree' },
-        { id: 'prod_003', label: '🧥 Denim Jacket' },
-        { id: 'prod_004', label: '🎧 Earbuds' },
-        { id: 'prod_005', label: '⌚ Smart Watch' },
-        { id: 'prod_006', label: '🔌 USB Cable' },
-        { id: 'prod_007', label: '👜 Handbag' },
-      ];
-
-      const ICONS = {
-        clothing: '👕',
-        electronics: '🎧',
-        accessories: '🕶️'
-      };
-
       // Get product ID from URL or default
       const params = new URLSearchParams(window.location.search);
       let currentProductId = params.get('id') || 'prod_001';
-
-      // Build product switcher
-      const switcherEl = document.getElementById('product-switcher');
-      DEMO_PRODUCTS.forEach(p => {
-        const btn = document.createElement('button');
-        btn.className = 'product-switcher__btn' + (p.id === currentProductId ? ' active' : '');
-        btn.textContent = p.label;
-        btn.addEventListener('click', () => {
-          window.location.href = `product.html?id=${p.id}`;
-        });
-        switcherEl.appendChild(btn);
-      });
 
       // Delivery date (3 days from now)
       const deliveryDate = new Date();
@@ -769,13 +757,17 @@
           if (!res.ok) throw new Error('Product not found');
           const product = await res.json();
 
-          const icon = ICONS[product.category] || '📦';
+          const icon = '📦';
           const seed = parseInt(product.id.replace(/\D/g, '')) || 1;
           const rating = mockRating(seed);
           const mrp = Math.round(product.price * 1.25);
 
           // Update page
-          document.getElementById('product-icon').textContent = icon;
+          if (product.image_url) {
+            document.getElementById('product-icon').innerHTML = `<img src="${product.image_url}" style="width:100%; height:100%; object-fit:cover;">`;
+          } else {
+            document.getElementById('product-icon').textContent = icon;
+          }
           document.getElementById('product-badge').textContent =
             product.high_return_risk ? '⚠ HIGH RETURN RATE' : '✓ AMAZON CHOICE';
           document.getElementById('product-badge').style.background =
@@ -803,7 +795,11 @@
 
           // Thumbnails
           document.querySelectorAll('.product-image__thumb').forEach(t => {
-            t.textContent = icon;
+            if (product.image_url) {
+              t.innerHTML = `<img src="${product.image_url}" style="width:100%; height:100%; object-fit:cover; border-radius:4px;">`;
+            } else {
+              t.textContent = icon;
+            }
           });
 
           // ─── Eco Alert ───
@@ -864,7 +860,38 @@
         return d.innerHTML;
       }
 
+      async function loadRelatedProducts() {
+        const carousel = document.getElementById('related-carousel');
+        try {
+          const res = await fetch('/api/products');
+          const allProducts = await res.json();
+          // Filter out current product and grab up to 6
+          const related = allProducts.filter(p => p.id !== currentProductId).slice(0, 6);
+          
+          carousel.innerHTML = related.map(p => {
+            const icon = p.image_url 
+              ? `<img src="${escapeHtml(p.image_url)}" style="width:100%; height:150px; object-fit:cover; border-radius: 4px;">`
+              : `<div style="font-size: 40px; text-align: center; line-height: 150px; background: #f0f2f2;">📦</div>`;
+            return `
+              <div class="related-card" style="width: 150px; flex-shrink: 0; cursor: pointer;" onclick="window.location.href='product.html?id=${p.id}'">
+                ${icon}
+                <div style="font-size: 13px; font-weight: 600; color: #0f1111; margin-top: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                  ${escapeHtml(p.name)}
+                </div>
+                <div style="font-size: 14px; font-weight: 700; color: #B12704;">
+                  ₹${p.price.toLocaleString('en-IN')}
+                </div>
+              </div>
+            `;
+          }).join('');
+        } catch(e) {
+          carousel.innerHTML = '<div style="color: #666; font-size: 14px;">No related products found.</div>';
+        }
+      }
+
+      // Init
       loadProduct();
+      loadRelatedProducts();
     })();
   </script>
 
