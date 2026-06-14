@@ -554,6 +554,24 @@
 
     .footer strong { color: var(--orange-500); }
 
+    /* ─── RELATED PRODUCTS ─── */
+    .related-card__img-wrapper {
+      width: 100%;
+      height: 150px;
+      overflow: hidden;
+      border-radius: 4px;
+      background: #f0f2f2;
+    }
+    .related-card__img-wrapper img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+    .related-card:hover .related-card__img-wrapper img {
+      transform: scale(1.05);
+    }
+
     /* ─── LOADING ─── */
     .loading-placeholder {
       background: linear-gradient(90deg, var(--gray-200) 25%, var(--gray-100) 50%, var(--gray-200) 75%);
@@ -870,11 +888,11 @@
           
           carousel.innerHTML = related.map(p => {
             const icon = p.image_url 
-              ? `<img src="${escapeHtml(p.image_url)}" style="width:100%; height:150px; object-fit:cover; border-radius: 4px;">`
-              : `<div style="font-size: 40px; text-align: center; line-height: 150px; background: #f0f2f2;">📦</div>`;
+              ? `<img src="${escapeHtml(p.image_url)}">`
+              : `<div style="font-size: 40px; text-align: center; line-height: 150px;">📦</div>`;
             return `
               <div class="related-card" style="width: 150px; flex-shrink: 0; cursor: pointer;" onclick="window.location.href='product.html?id=${p.id}'">
-                ${icon}
+                <div class="related-card__img-wrapper">${icon}</div>
                 <div style="font-size: 13px; font-weight: 600; color: #0f1111; margin-top: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                   ${escapeHtml(p.name)}
                 </div>
