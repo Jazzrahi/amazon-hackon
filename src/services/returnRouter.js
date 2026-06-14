@@ -12,7 +12,7 @@
  * @param {string} params.demandClassification - "high" or "low"
  * @returns {{decision: string, rule: string, trustScore: number, shippingRatio: number, offerAmount: number|null}}
  */
-function routeReturn({ trustScore, returnShippingCost, productPrice, demandClassification }) {
+function routeReturn({ trustScore, returnShippingCost, productPrice, demandClassification, grade, category, highReturnRisk }) {
   const shippingRatio = Math.round((returnShippingCost / productPrice) * 100) / 100;
 
   // Priority 1: Low trust score — short-circuit to standard return
@@ -37,7 +37,40 @@ function routeReturn({ trustScore, returnShippingCost, productPrice, demandClass
     };
   }
 
-  // Priority 3: High demand — route to P2P resale
+  // Priority 3: Grade C electronics — route to e-waste recycling
+  if (grade === 'C' && category === 'electronics') {
+    return {
+      decision: 'recycle',
+      rule: 'ewaste_recycling',
+      trustScore,
+      shippingRatio,
+      offerAmount: 30,
+    };
+  }
+
+  // Priority 4: Grade C low value items — route to charity donation
+  if (grade === 'C' && productPrice < 2000) {
+    return {
+      decision: 'donate',
+      rule: 'charity_donation',
+      trustScore,
+      shippingRatio,
+      offerAmount: 50,
+    };
+  }
+
+  // Priority 5: High return risk clothing — offer direct exchange
+  if (highReturnRisk && category === 'clothing') {
+    return {
+      decision: 'exchange',
+      rule: 'sizing_exchange',
+      trustScore,
+      shippingRatio,
+      offerAmount: null,
+    };
+  }
+
+  // Priority 6: High demand — route to P2P resale
   if (demandClassification === 'high') {
     return {
       decision: 'p2p_resale',
@@ -48,7 +81,7 @@ function routeReturn({ trustScore, returnShippingCost, productPrice, demandClass
     };
   }
 
-  // Priority 4: Default — standard return (low demand warehouse liquidation)
+  // Priority 7: Default — standard return (low demand warehouse liquidation)
   return {
     decision: 'standard_return',
     rule: 'low_demand',

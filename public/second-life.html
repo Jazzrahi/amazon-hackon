@@ -3,215 +3,437 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Second Life Store - Certified Refurbished Marketplace</title>
+  <title>Amazon Second Life — Certified Refurbished Marketplace</title>
+  <meta name="description" content="AI-certified refurbished products at great prices. Every purchase saves carbon emissions and gives products a meaningful second life.">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
-    /* Amazon Color Scheme Variables */
     :root {
-      --amazon-dark-navy: #232F3E;
-      --amazon-orange: #FF9900;
-      --amazon-white: #FFFFFF;
-      --amazon-light-gray: #F5F5F5;
-      --amazon-border: #DDD;
-      --amazon-text: #0F1111;
-      --amazon-text-secondary: #565959;
-      --grade-a-green: #067D62;
-      --grade-b-yellow: #B8860B;
-      --grade-c-orange: #CC5500;
+      --navy-900: #0F1923;
+      --navy-800: #1A2734;
+      --navy-700: #232F3E;
+      --navy-600: #37475A;
+      --orange-500: #FF9900;
+      --orange-400: #FFB84D;
+      --orange-600: #E68A00;
+      --green-500: #00A86B;
+      --green-400: #2ED889;
+      --green-600: #067D62;
+      --green-bg: rgba(0, 168, 107, 0.08);
+      --white: #FFFFFF;
+      --gray-50: #FAFAFA;
+      --gray-100: #F5F5F5;
+      --gray-200: #EAEDED;
+      --gray-300: #D5D9D9;
+      --gray-400: #999;
+      --gray-600: #565959;
+      --gray-800: #0F1111;
+      --red-price: #B12704;
+      --grade-a: #00A86B;
+      --grade-b: #D4A017;
+      --grade-c: #E07020;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+      --shadow-md: 0 4px 14px rgba(0,0,0,0.08);
+      --shadow-lg: 0 8px 30px rgba(0,0,0,0.12);
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
     }
 
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
-      font-family: 'Amazon Ember', Arial, sans-serif;
-      background-color: var(--amazon-light-gray);
-      color: var(--amazon-text);
-      line-height: 1.6;
-      min-width: 1024px;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--gray-100);
+      color: var(--gray-800);
+      -webkit-font-smoothing: antialiased;
     }
 
-    /* Header */
+    /* ─── HEADER ─── */
     .header {
-      background-color: var(--amazon-dark-navy);
-      padding: 14px 32px;
+      background: linear-gradient(180deg, var(--navy-900) 0%, var(--navy-700) 100%);
+      padding: 0 32px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header__inner {
+      max-width: 1280px;
+      margin: 0 auto;
       display: flex;
       align-items: center;
-      gap: 16px;
+      height: 64px;
+      gap: 32px;
     }
 
     .header__logo {
-      color: var(--amazon-white);
-      font-size: 22px;
-      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
       text-decoration: none;
+      flex-shrink: 0;
     }
 
-    .header__logo span {
-      color: var(--amazon-orange);
+    .header__logo-text {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--white);
+      letter-spacing: -0.3px;
+    }
+
+    .header__logo-text span {
+      color: var(--orange-500);
+    }
+
+    .header__logo-badge {
+      background: var(--green-500);
+      color: var(--white);
+      font-size: 9px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
     .header__nav {
       display: flex;
-      gap: 24px;
+      gap: 4px;
       margin-left: auto;
     }
 
     .header__nav a {
-      color: var(--amazon-white);
+      color: rgba(255,255,255,0.75);
       text-decoration: none;
-      font-size: 14px;
-      transition: color 0.2s;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 8px 14px;
+      border-radius: 6px;
+      transition: all 0.2s;
     }
 
     .header__nav a:hover {
-      color: var(--amazon-orange);
+      color: var(--white);
+      background: rgba(255,255,255,0.08);
     }
 
     .header__nav a.active {
-      color: var(--amazon-orange);
-      font-weight: 600;
+      color: var(--orange-500);
+      background: rgba(255,153,0,0.1);
     }
 
-    /* Hero Section */
-    .hero {
-      background-color: var(--amazon-dark-navy);
-      padding: 32px;
-      text-align: center;
-      color: var(--amazon-white);
-    }
-
-    .hero__title {
-      font-size: 28px;
-      font-weight: 700;
-      margin-bottom: 8px;
-    }
-
-    .hero__title span {
-      color: var(--amazon-orange);
-    }
-
-    .hero__subtitle {
-      font-size: 15px;
-      opacity: 0.85;
-      max-width: 600px;
-      margin: 0 auto;
-    }
-
-    /* Main Content */
-    .main {
-      max-width: 1200px;
-      margin: 32px auto;
+    /* ─── SUB-NAV BAR ─── */
+    .subnav {
+      background: var(--navy-600);
       padding: 0 32px;
     }
 
-    .section-header {
+    .subnav__inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      height: 40px;
+      gap: 6px;
+      font-size: 12px;
+    }
+
+    .subnav__text {
+      color: rgba(255,255,255,0.7);
+      font-weight: 500;
+    }
+
+    .subnav__link {
+      color: var(--white);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .subnav__link:hover {
+      text-decoration: underline;
+      color: var(--orange-400);
+    }
+
+    .user-btn {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.8);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 14px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s;
+    }
+
+    .user-btn:hover { background: rgba(255,255,255,0.15); }
+
+    .user-btn.active {
+      background: var(--orange-500);
+      border-color: var(--orange-500);
+      color: var(--navy-900);
+    }
+
+    /* ─── HERO ─── */
+    .hero {
+      background: linear-gradient(135deg, var(--navy-900) 0%, #1B3A4B 50%, #0D4F3C 100%);
+      padding: 56px 32px 48px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -20%;
+      width: 60%;
+      height: 200%;
+      background: radial-gradient(ellipse, rgba(0,168,107,0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero::after {
+      content: '';
+      position: absolute;
+      top: -30%;
+      right: -10%;
+      width: 40%;
+      height: 160%;
+      background: radial-gradient(ellipse, rgba(255,153,0,0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero__badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(0,168,107,0.15);
+      border: 1px solid rgba(0,168,107,0.3);
+      color: var(--green-400);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 6px 14px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 20px;
+    }
+
+    .hero__title {
+      font-size: 40px;
+      font-weight: 900;
+      color: var(--white);
+      letter-spacing: -1px;
+      margin-bottom: 12px;
+      line-height: 1.15;
+    }
+
+    .hero__title span {
+      background: linear-gradient(135deg, var(--orange-500), var(--green-400));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero__subtitle {
+      font-size: 16px;
+      color: rgba(255,255,255,0.7);
+      max-width: 560px;
+      margin: 0 auto 36px;
+      line-height: 1.6;
+    }
+
+    /* ─── IMPACT STATS ─── */
+    .impact-stats {
+      display: flex;
+      justify-content: center;
+      gap: 48px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .impact-stat {
+      text-align: center;
+    }
+
+    .impact-stat__value {
+      font-size: 32px;
+      font-weight: 900;
+      color: var(--white);
+      letter-spacing: -0.5px;
+      line-height: 1;
+    }
+
+    .impact-stat__value--green { color: var(--green-400); }
+    .impact-stat__value--orange { color: var(--orange-400); }
+
+    .impact-stat__label {
+      font-size: 12px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.55);
+      margin-top: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* ─── MAIN ─── */
+    .main {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 32px;
+    }
+
+    /* ─── FILTER BAR ─── */
+    .filter-bar {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 24px;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+      gap: 16px;
     }
 
-    .section-header__title {
-      font-size: 20px;
-      font-weight: 700;
-      color: var(--amazon-dark-navy);
+    .filter-bar__tabs {
+      display: flex;
+      gap: 6px;
     }
 
-    .section-header__count {
+    .filter-tab {
+      background: var(--white);
+      border: 1px solid var(--gray-300);
+      color: var(--gray-600);
+      font-size: 13px;
+      font-weight: 600;
+      padding: 8px 18px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+
+    .filter-tab:hover {
+      border-color: var(--navy-700);
+      color: var(--navy-700);
+    }
+
+    .filter-tab.active {
+      background: var(--navy-700);
+      border-color: var(--navy-700);
+      color: var(--white);
+    }
+
+    .filter-bar__count {
       font-size: 14px;
-      color: var(--amazon-text-secondary);
+      color: var(--gray-600);
+      font-weight: 500;
     }
 
-    /* Card Grid */
+    /* ─── CARD GRID ─── */
     .card-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
       gap: 24px;
     }
 
-    @media (max-width: 1024px) {
-      .card-grid {
-        grid-template-columns: 1fr;
-        max-width: 360px;
-        margin: 0 auto;
-      }
-    }
-
-    /* Product Card */
+    /* ─── PRODUCT CARD ─── */
     .product-card {
-      background-color: var(--amazon-white);
-      border: 1px solid var(--amazon-border);
-      border-radius: 8px;
+      background: var(--white);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-md);
       overflow: hidden;
       cursor: pointer;
-      transition: box-shadow 0.2s, transform 0.15s;
-      min-width: 280px;
-      max-width: 360px;
-      width: 100%;
-    }
-
-    .product-card:hover {
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      transform: translateY(-2px);
-    }
-
-    .product-card:focus {
-      outline: 2px solid var(--amazon-orange);
-      outline-offset: 2px;
-    }
-
-    .product-card__image {
-      background-color: #F8F8F8;
-      height: 180px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-bottom: 1px solid var(--amazon-border);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       position: relative;
     }
 
-    .product-card__image-placeholder {
-      font-size: 48px;
+    .product-card:hover {
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-4px);
+      border-color: var(--gray-300);
     }
 
-    .product-card__badge {
+    .product-card__image {
+      background: linear-gradient(135deg, #F8F9FA 0%, #EEF0F2 100%);
+      height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      border-bottom: 1px solid var(--gray-200);
+    }
+
+    .product-card__image-icon {
+      font-size: 56px;
+      opacity: 0.9;
+    }
+
+    .product-card__trust-badge {
       position: absolute;
-      top: 10px;
-      right: 10px;
-      padding: 4px 10px;
-      border-radius: 4px;
+      top: 12px;
+      left: 12px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 5px 10px;
+      border-radius: 6px;
       font-size: 11px;
       font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: var(--amazon-white);
+      color: var(--white);
+      letter-spacing: 0.3px;
+      backdrop-filter: blur(4px);
     }
 
-    .product-card__badge--a {
-      background-color: var(--grade-a-green);
+    .product-card__trust-badge--a {
+      background: linear-gradient(135deg, var(--grade-a), #00C77B);
     }
 
-    .product-card__badge--b {
-      background-color: var(--grade-b-yellow);
+    .product-card__trust-badge--b {
+      background: linear-gradient(135deg, var(--grade-b), #E8B830);
     }
 
-    .product-card__badge--c {
-      background-color: var(--grade-c-orange);
+    .product-card__trust-badge--c {
+      background: linear-gradient(135deg, var(--grade-c), #F08838);
+    }
+
+    .product-card__trust-badge-icon {
+      font-size: 12px;
+    }
+
+    .product-card__eco-tag {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: rgba(0, 168, 107, 0.12);
+      border: 1px solid rgba(0, 168, 107, 0.25);
+      color: var(--green-600);
+      font-size: 10px;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 5px;
     }
 
     .product-card__body {
-      padding: 16px;
+      padding: 18px 18px 20px;
+    }
+
+    .product-card__category {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--gray-400);
+      margin-bottom: 6px;
     }
 
     .product-card__name {
       font-size: 15px;
       font-weight: 600;
-      color: var(--amazon-text);
-      margin-bottom: 10px;
+      color: var(--gray-800);
       line-height: 1.4;
+      margin-bottom: 12px;
       display: -webkit-box;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
@@ -226,168 +448,151 @@
     }
 
     .product-card__resale-price {
-      font-size: 20px;
-      font-weight: 700;
-      color: #B12704;
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--red-price);
     }
 
     .product-card__original-price {
-      font-size: 14px;
-      color: var(--amazon-text-secondary);
+      font-size: 13px;
+      color: var(--gray-400);
       text-decoration: line-through;
     }
 
-    .product-card__grade {
-      display: inline-flex;
+    .product-card__discount {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--green-600);
+      background: var(--green-bg);
+      padding: 2px 7px;
+      border-radius: 4px;
+    }
+
+    .product-card__rating {
+      display: flex;
       align-items: center;
       gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .product-card__stars {
+      color: var(--orange-500);
+      font-size: 13px;
+      letter-spacing: 1px;
+    }
+
+    .product-card__reviews {
       font-size: 12px;
-      font-weight: 600;
-      margin-bottom: 8px;
-    }
-
-    .product-card__grade-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-    }
-
-    .product-card__grade-dot--a {
-      background-color: var(--grade-a-green);
-    }
-
-    .product-card__grade-dot--b {
-      background-color: var(--grade-b-yellow);
-    }
-
-    .product-card__grade-dot--c {
-      background-color: var(--grade-c-orange);
+      color: var(--gray-400);
     }
 
     .product-card__carbon {
       display: flex;
       align-items: center;
       gap: 6px;
-      font-size: 13px;
-      color: var(--grade-a-green);
-      font-weight: 500;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--green-600);
+      background: var(--green-bg);
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 14px;
     }
 
     .product-card__cta {
       display: block;
       width: 100%;
-      margin-top: 14px;
-      padding: 10px 16px;
-      background-color: var(--amazon-orange);
-      color: var(--amazon-dark-navy);
+      padding: 11px 16px;
+      background: linear-gradient(180deg, #FFD814 0%, #FF9900 100%);
+      color: var(--navy-900);
       border: none;
-      border-radius: 6px;
-      font-size: 14px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
       font-weight: 700;
       cursor: pointer;
-      text-align: center;
-      transition: background-color 0.2s;
+      font-family: inherit;
+      transition: all 0.15s;
     }
 
     .product-card__cta:hover {
-      background-color: #E68A00;
+      background: linear-gradient(180deg, #F7CA00 0%, #E68A00 100%);
     }
 
-    /* Empty State */
-    .empty-state {
-      text-align: center;
-      padding: 80px 32px;
-      background-color: var(--amazon-white);
-      border-radius: 8px;
-      border: 1px solid var(--amazon-border);
+    .product-card__cta:active {
+      transform: scale(0.98);
     }
 
-    .empty-state__icon {
-      font-size: 56px;
-      margin-bottom: 16px;
+    /* ─── WHY SECTION ─── */
+    .why-section {
+      margin-top: 48px;
+      background: var(--white);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-lg);
+      padding: 40px;
     }
 
-    .empty-state__message {
-      font-size: 18px;
-      color: var(--amazon-text-secondary);
-      font-weight: 500;
-    }
-
-    /* Loading State */
-    .loading-state {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 60px 20px;
-    }
-
-    .loading-state__spinner {
-      width: 36px;
-      height: 36px;
-      border: 4px solid var(--amazon-border);
-      border-top-color: var(--amazon-orange);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-
-    .loading-state__text {
-      margin-top: 14px;
-      font-size: 14px;
-      color: var(--amazon-text-secondary);
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    /* Error State */
-    .error-state {
-      text-align: center;
-      padding: 60px 20px;
-      background-color: var(--amazon-white);
-      border-radius: 8px;
-      border: 1px solid #FCE8E8;
-    }
-
-    .error-state__icon {
-      font-size: 36px;
+    .why-section__title {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--navy-700);
       margin-bottom: 8px;
+      text-align: center;
     }
 
-    .error-state__text {
+    .why-section__subtitle {
       font-size: 14px;
-      color: #CC0000;
+      color: var(--gray-600);
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .why-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 32px;
+    }
+
+    .why-card {
+      text-align: center;
+      padding: 24px 16px;
+      border-radius: var(--radius-md);
+      background: var(--gray-50);
+      transition: transform 0.2s;
+    }
+
+    .why-card:hover {
+      transform: translateY(-2px);
+    }
+
+    .why-card__icon {
+      font-size: 36px;
       margin-bottom: 14px;
     }
 
-    .error-state__retry {
-      background-color: var(--amazon-dark-navy);
-      color: var(--amazon-white);
-      border: none;
-      border-radius: 6px;
-      padding: 10px 24px;
+    .why-card__title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--navy-700);
+      margin-bottom: 8px;
+    }
+
+    .why-card__desc {
       font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
+      color: var(--gray-600);
+      line-height: 1.5;
     }
 
-    .error-state__retry:hover {
-      background-color: #37475A;
-    }
-
-    /* Modal Overlay */
+    /* ─── MODAL ─── */
     .modal-overlay {
       display: none;
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.6);
+      inset: 0;
+      background: rgba(15, 25, 35, 0.7);
+      backdrop-filter: blur(4px);
       z-index: 1000;
       align-items: center;
       justify-content: center;
-      padding: 32px;
+      padding: 24px;
     }
 
     .modal-overlay.active {
@@ -395,56 +600,56 @@
     }
 
     .modal {
-      background-color: var(--amazon-white);
-      border-radius: 10px;
-      max-width: 680px;
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      max-width: 600px;
       width: 100%;
       max-height: 85vh;
       overflow-y: auto;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-      animation: modalSlideIn 0.25s ease-out;
+      box-shadow: 0 24px 48px rgba(0, 0, 0, 0.3);
+      animation: modalIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 
-    @keyframes modalSlideIn {
-      from {
-        opacity: 0;
-        transform: scale(0.95) translateY(10px);
-      }
-      to {
-        opacity: 1;
-        transform: scale(1) translateY(0);
-      }
+    @keyframes modalIn {
+      from { opacity: 0; transform: scale(0.93) translateY(12px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
     }
 
     .modal__header {
+      background: linear-gradient(135deg, var(--navy-900), var(--navy-700));
+      padding: 20px 24px;
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 20px 24px;
-      border-bottom: 1px solid var(--amazon-border);
-      background-color: var(--amazon-dark-navy);
-      border-radius: 10px 10px 0 0;
     }
 
     .modal__title {
-      font-size: 18px;
+      font-size: 16px;
       font-weight: 700;
-      color: var(--amazon-white);
+      color: var(--white);
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .modal__close {
-      background: none;
+      background: rgba(255,255,255,0.1);
       border: none;
-      font-size: 24px;
-      color: var(--amazon-white);
+      color: var(--white);
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      font-size: 18px;
       cursor: pointer;
-      padding: 4px 8px;
-      border-radius: 4px;
-      transition: background-color 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
     }
 
     .modal__close:hover {
-      background-color: rgba(255, 255, 255, 0.15);
+      background: rgba(255,255,255,0.2);
     }
 
     .modal__body {
@@ -454,138 +659,199 @@
     .modal__product-name {
       font-size: 20px;
       font-weight: 700;
-      color: var(--amazon-text);
-      margin-bottom: 16px;
+      margin-bottom: 20px;
     }
 
     .modal__section {
       margin-bottom: 20px;
     }
 
-    .modal__section-title {
-      font-size: 13px;
+    .modal__section-label {
+      font-size: 11px;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: var(--amazon-text-secondary);
+      letter-spacing: 0.8px;
+      color: var(--gray-400);
       margin-bottom: 8px;
     }
 
-    .modal__grade-badge {
+    .modal__grade-pill {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      padding: 8px 14px;
-      border-radius: 6px;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: 8px;
       font-size: 14px;
       font-weight: 700;
-      color: var(--amazon-white);
+      color: var(--white);
     }
 
-    .modal__grade-badge--a {
-      background-color: var(--grade-a-green);
-    }
+    .modal__grade-pill--a { background: linear-gradient(135deg, var(--grade-a), #00C77B); }
+    .modal__grade-pill--b { background: linear-gradient(135deg, var(--grade-b), #E8B830); }
+    .modal__grade-pill--c { background: linear-gradient(135deg, var(--grade-c), #F08838); }
 
-    .modal__grade-badge--b {
-      background-color: var(--grade-b-yellow);
-    }
-
-    .modal__grade-badge--c {
-      background-color: var(--grade-c-orange);
-    }
-
-    .modal__grade-explanation {
+    .modal__grade-explain {
+      font-size: 13px;
+      color: var(--gray-600);
       margin-top: 8px;
-      font-size: 14px;
-      color: var(--amazon-text-secondary);
       font-style: italic;
+      line-height: 1.5;
     }
 
-    .modal__pricing {
+    .modal__pricing-row {
       display: flex;
       align-items: baseline;
-      gap: 16px;
+      gap: 12px;
+      flex-wrap: wrap;
     }
 
-    .modal__resale-price {
-      font-size: 26px;
-      font-weight: 700;
-      color: #B12704;
+    .modal__big-price {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--red-price);
     }
 
-    .modal__original-price {
-      font-size: 16px;
-      color: var(--amazon-text-secondary);
+    .modal__old-price {
+      font-size: 15px;
+      color: var(--gray-400);
       text-decoration: line-through;
     }
 
-    .modal__savings-tag {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--grade-a-green);
-      background-color: #E7F7E9;
-      padding: 3px 8px;
-      border-radius: 4px;
-    }
-
-    .modal__carbon {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 15px;
-      color: var(--grade-a-green);
-      font-weight: 600;
-      padding: 12px 16px;
-      background-color: #E7F7E9;
+    .modal__savings-pill {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--green-600);
+      background: var(--green-bg);
+      padding: 4px 10px;
       border-radius: 6px;
     }
+
+    .modal__carbon-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--green-bg);
+      border: 1px solid rgba(0,168,107,0.15);
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--green-600);
+    }
+
+    .modal__carbon-icon { font-size: 20px; }
 
     .modal__photos {
       display: flex;
       gap: 8px;
-      flex-wrap: wrap;
     }
 
-    .modal__photo-placeholder {
-      width: 80px;
-      height: 80px;
-      background-color: #F0F0F0;
-      border: 1px solid var(--amazon-border);
-      border-radius: 6px;
+    .modal__photo {
+      width: 72px;
+      height: 72px;
+      background: var(--gray-100);
+      border: 1px solid var(--gray-200);
+      border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 24px;
+      font-size: 22px;
     }
 
-    .modal__cta {
+    .modal__cta-btn {
       display: block;
       width: 100%;
-      padding: 14px 20px;
-      background-color: var(--amazon-orange);
-      color: var(--amazon-dark-navy);
+      padding: 14px;
+      background: linear-gradient(180deg, #FFD814 0%, #FF9900 100%);
+      color: var(--navy-900);
       border: none;
-      border-radius: 8px;
-      font-size: 16px;
+      border-radius: var(--radius-sm);
+      font-size: 15px;
       font-weight: 700;
       cursor: pointer;
-      text-align: center;
+      font-family: inherit;
       margin-top: 8px;
-      transition: background-color 0.2s;
     }
 
-    .modal__cta:hover {
-      background-color: #E68A00;
+    .modal__cta-btn:hover {
+      background: linear-gradient(180deg, #F7CA00 0%, #E68A00 100%);
     }
 
-    /* Footer */
-    .footer {
-      background-color: var(--amazon-dark-navy);
-      color: var(--amazon-white);
+    /* ─── LOADING / EMPTY / ERROR ─── */
+    .state-box {
       text-align: center;
-      padding: 18px;
-      margin-top: 48px;
+      padding: 64px 24px;
+      background: var(--white);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--gray-200);
+    }
+
+    .state-box__icon { font-size: 48px; margin-bottom: 16px; }
+    .state-box__text { font-size: 16px; color: var(--gray-600); font-weight: 500; }
+
+    .spinner {
+      width: 36px;
+      height: 36px;
+      border: 4px solid var(--gray-200);
+      border-top-color: var(--orange-500);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto 16px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .retry-btn {
+      background: var(--navy-700);
+      color: var(--white);
+      border: none;
+      border-radius: 8px;
+      padding: 10px 24px;
       font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 12px;
+      font-family: inherit;
+    }
+
+    /* ─── FOOTER ─── */
+    .footer {
+      background: linear-gradient(180deg, var(--navy-700), var(--navy-900));
+      color: rgba(255,255,255,0.5);
+      text-align: center;
+      padding: 24px;
+      font-size: 12px;
+      margin-top: 56px;
+    }
+
+    .footer strong {
+      color: var(--orange-500);
+    }
+
+    /* ─── ANIMATIONS ─── */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .animate-in {
+      animation: fadeInUp 0.4s ease-out forwards;
+      opacity: 0;
+    }
+
+    @keyframes countUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 768px) {
+      .hero__title { font-size: 28px; }
+      .impact-stats { gap: 24px; flex-wrap: wrap; }
+      .impact-stat__value { font-size: 24px; }
+      .why-grid { grid-template-columns: 1fr; }
+      .card-grid { grid-template-columns: 1fr; }
+      .filter-bar { flex-direction: column; align-items: flex-start; }
     }
   </style>
 </head>
@@ -593,56 +859,132 @@
 
   <!-- Header -->
   <header class="header">
-    <a href="/" class="header__logo">Second <span>Life</span> Commerce</a>
-    <nav class="header__nav">
-      <a href="/product.html">Products</a>
-      <a href="/orders.html">My Orders</a>
-      <a href="/second-life.html" class="active">Second Life Store</a>
-    </nav>
+    <div class="header__inner">
+      <a href="/" class="header__logo">
+        <span class="header__logo-text">amazon <span>second life</span></span>
+        <span class="header__logo-badge">♻ Eco</span>
+      </a>
+      <nav class="header__nav">
+        <a href="/product.html">Products</a>
+        <a href="/orders.html">My Orders</a>
+        <a href="/second-life.html" class="active">Second Life</a>
+        <a href="/green-credits.html">💚 Credits</a>
+      </nav>
+    </div>
   </header>
 
-  <!-- Hero Banner -->
+  <!-- Sub-nav -->
+  <div class="subnav">
+    <div class="subnav__inner">
+      <span class="subnav__label" style="color: rgba(255,255,255,0.5); font-size: 11px; font-weight: 600; margin-right: 4px;">👤 Demo User:</span>
+      <button class="user-btn active" data-user="user_001">Priya (Delhi)</button>
+      <button class="user-btn" data-user="user_002">Rahul (Mumbai)</button>
+      <button class="user-btn" data-user="user_005">Vikram (Delhi)</button>
+    </div>
+  </div>
+
+  <!-- Hero -->
   <section class="hero">
-    <h1 class="hero__title">♻️ <span>Second Life</span> Marketplace</h1>
-    <p class="hero__subtitle">AI-certified refurbished products at great prices. Every purchase saves carbon emissions.</p>
+    <div class="hero__badge">🌱 AI-Certified Quality</div>
+    <h1 class="hero__title">Give Products a <span>Second Life</span></h1>
+    <p class="hero__subtitle">Every item is AI-graded, quality-certified, and priced for value. Buy refurbished, save money, and reduce your carbon footprint.</p>
+
+    <div class="impact-stats">
+      <div class="impact-stat">
+        <div class="impact-stat__value impact-stat__value--green" id="stat-co2">0</div>
+        <div class="impact-stat__label">kg CO₂ Saved</div>
+      </div>
+      <div class="impact-stat">
+        <div class="impact-stat__value impact-stat__value--orange" id="stat-items">0</div>
+        <div class="impact-stat__label">Items Rescued</div>
+      </div>
+      <div class="impact-stat">
+        <div class="impact-stat__value" id="stat-savings" style="color: #FFFFFF;">₹0</div>
+        <div class="impact-stat__label">Buyer Savings</div>
+      </div>
+    </div>
   </section>
 
-  <!-- Main Content -->
+  <!-- Main -->
   <main class="main">
-    <div class="section-header">
-      <h2 class="section-header__title">Available Refurbished Items</h2>
-      <span class="section-header__count" id="item-count"></span>
+
+    <!-- Filters -->
+    <div class="filter-bar">
+      <div class="filter-bar__tabs">
+        <button class="filter-tab active" data-filter="recommended">✨ Recommended for You</button>
+        <button class="filter-tab" data-filter="all">All Items</button>
+        <button class="filter-tab" data-filter="electronics">⚡ Electronics</button>
+        <button class="filter-tab" data-filter="clothing">👕 Clothing</button>
+        <button class="filter-tab" data-filter="accessories">💎 Accessories</button>
+      </div>
+      <div class="filter-bar__count" id="item-count"></div>
     </div>
 
+    <!-- Items Grid -->
     <div id="items-container">
-      <div class="loading-state">
-        <div class="loading-state__spinner"></div>
-        <p class="loading-state__text">Loading marketplace items...</p>
+      <div class="state-box">
+        <div class="spinner"></div>
+        <p class="state-box__text">Loading marketplace…</p>
       </div>
     </div>
+
+    <!-- Why Buy Refurbished Section -->
+    <section class="why-section" id="why-section">
+      <h2 class="why-section__title">Why Buy Second Life?</h2>
+      <p class="why-section__subtitle">Every product goes through our rigorous AI-powered quality assurance pipeline</p>
+      <div class="why-grid">
+        <div class="why-card">
+          <div class="why-card__icon">🤖</div>
+          <h3 class="why-card__title">AI Quality Grading</h3>
+          <p class="why-card__desc">Computer vision analyzes every item for defects, wear, and functionality. Each product gets an A, B, or C trust grade.</p>
+        </div>
+        <div class="why-card">
+          <div class="why-card__icon">🌍</div>
+          <h3 class="why-card__title">Save the Planet</h3>
+          <p class="why-card__desc">Buying refurbished prevents items from reaching landfills and cuts manufacturing emissions by up to 70%.</p>
+        </div>
+        <div class="why-card">
+          <div class="why-card__icon">💰</div>
+          <h3 class="why-card__title">Save Up to 50%</h3>
+          <p class="why-card__desc">Get premium products at a fraction of the cost. Same quality, better price, smaller footprint.</p>
+        </div>
+      </div>
+    </section>
   </main>
 
-  <!-- Item Detail Modal -->
-  <div class="modal-overlay" id="item-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <!-- Modal -->
+  <div class="modal-overlay" id="item-modal" role="dialog" aria-modal="true">
     <div class="modal">
       <div class="modal__header">
-        <h3 class="modal__title" id="modal-title">AI Condition Report</h3>
-        <button class="modal__close" id="modal-close-btn" aria-label="Close modal">&times;</button>
+        <h3 class="modal__title">🔍 AI Condition Report</h3>
+        <button class="modal__close" id="modal-close-btn" aria-label="Close">&times;</button>
       </div>
-      <div class="modal__body" id="modal-body">
-        <!-- Dynamic content injected here -->
-      </div>
+      <div class="modal__body" id="modal-body"></div>
     </div>
   </div>
 
   <!-- Footer -->
   <footer class="footer">
-    <p>Second Life Commerce — Amazon HackOn Prototype | Certified Refurbished Marketplace</p>
+    <p><strong>Amazon Second Life</strong> — AI-Powered Returns & Sustainable Resale | Amazon HackOn 2026</p>
   </footer>
 
   <script>
     (function () {
       'use strict';
+
+      let allItems = [];
+      let activeFilter = 'recommended';
+      let currentUser = 'user_001';
+
+      // ── User switcher ──
+      document.querySelectorAll('.user-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.user-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          currentUser = btn.dataset.user;
+          renderGrid(allItems);
+        });
+      });
 
       const itemsContainer = document.getElementById('items-container');
       const itemCountEl = document.getElementById('item-count');
@@ -650,172 +992,181 @@
       const modalBody = document.getElementById('modal-body');
       const modalCloseBtn = document.getElementById('modal-close-btn');
 
-      /**
-       * Returns the Trust Badge color class for a given grade.
-       * @param {string} grade - "A", "B", or "C"
-       * @returns {string} CSS modifier class suffix
-       */
-      function getBadgeClass(grade) {
-        switch (grade) {
-          case 'A': return 'a';
-          case 'B': return 'b';
-          case 'C': return 'c';
-          default: return 'b';
-        }
+      let allItems = [];
+      let activeFilter = 'all';
+
+      // ── Category icons ──
+      function getIcon(cat) {
+        return { electronics: '🎧', clothing: '👟', accessories: '🕶️' }[cat] || '📦';
       }
 
-      /**
-       * Returns a human-readable grade label.
-       * @param {string} grade - "A", "B", or "C"
-       * @returns {string}
-       */
-      function getGradeLabel(grade) {
-        switch (grade) {
-          case 'A': return 'Grade A — Like New';
-          case 'B': return 'Grade B — Good';
-          case 'C': return 'Grade C — Fair';
-          default: return `Grade ${grade}`;
-        }
+      // ── Grade helpers ──
+      function gradeClass(g) { return { A: 'a', B: 'b', C: 'c' }[g] || 'b'; }
+      function gradeLabel(g) { return { A: 'Like New', B: 'Good Condition', C: 'Fair' }[g] || g; }
+      function gradeExplain(g) {
+        return {
+          A: 'Inspected by AI. Minimal cosmetic wear — looks and works like new. Fully certified.',
+          B: 'Moderate cosmetic wear. All features tested and fully functional. Great value.',
+          C: 'Visible wear or minor issues. Priced aggressively for budget-conscious buyers.'
+        }[g] || 'AI-graded condition.';
       }
 
-      /**
-       * Returns grade explanation text for the modal.
-       * @param {string} grade
-       * @returns {string}
-       */
-      function getGradeExplanation(grade) {
-        switch (grade) {
-          case 'A': return 'Like-new condition with minimal cosmetic wear. Fully inspected and certified.';
-          case 'B': return 'Moderate cosmetic wear but fully functional. All features tested and working.';
-          case 'C': return 'Significant wear or minor functional issues. Priced accordingly for value buyers.';
-          default: return 'Condition assessed by AI grading system.';
-        }
+      // ── Mock star ratings ──
+      function mockRating() {
+        const r = (3.5 + Math.random() * 1.5).toFixed(1);
+        const full = Math.floor(r);
+        const half = r - full >= 0.5 ? 1 : 0;
+        const empty = 5 - full - half;
+        return {
+          stars: '★'.repeat(full) + (half ? '½' : '') + '☆'.repeat(empty),
+          count: Math.floor(200 + Math.random() * 3000),
+          value: r
+        };
       }
 
-      /**
-       * Returns a category-specific emoji for the product image placeholder.
-       * @param {string} category
-       * @returns {string}
-       */
-      function getCategoryIcon(category) {
-        switch (category) {
-          case 'clothing': return '👕';
-          case 'electronics': return '📱';
-          case 'accessories': return '👜';
-          default: return '📦';
-        }
+      function escapeHtml(s) {
+        if (!s) return '';
+        const d = document.createElement('div');
+        d.appendChild(document.createTextNode(String(s)));
+        return d.innerHTML;
       }
 
-      /**
-       * Escapes HTML entities to prevent XSS.
-       * @param {string} str
-       * @returns {string}
-       */
-      function escapeHtml(str) {
-        if (!str) return '';
-        const div = document.createElement('div');
-        div.appendChild(document.createTextNode(String(str)));
-        return div.innerHTML;
-      }
+      // ── Render a product card ──
+      function renderCard(item, idx) {
+        const gc = gradeClass(item.grade);
+        const discount = Math.round(((item.price - item.resale_price) / item.price) * 100);
+        const rating = mockRating();
 
-      /**
-       * Renders a single product card element.
-       * @param {Object} item - Product item data
-       * @returns {HTMLElement}
-       */
-      function renderCard(item) {
-        const badgeClass = getBadgeClass(item.grade);
         const card = document.createElement('div');
-        card.className = 'product-card';
-        card.setAttribute('tabindex', '0');
-        card.setAttribute('role', 'button');
-        card.setAttribute('aria-label', `View details for ${item.name}`);
+        card.className = 'product-card animate-in';
+        card.style.animationDelay = `${idx * 80}ms`;
+        card.dataset.category = item.category;
 
         card.innerHTML = `
           <div class="product-card__image">
-            <span class="product-card__image-placeholder">${getCategoryIcon(item.category)}</span>
-            <span class="product-card__badge product-card__badge--${badgeClass}">Grade ${escapeHtml(item.grade)}</span>
+            <span class="product-card__image-icon">${getIcon(item.category)}</span>
+            <span class="product-card__trust-badge product-card__trust-badge--${gc}">
+              <span class="product-card__trust-badge-icon">✓</span>
+              Grade ${escapeHtml(item.grade)} · ${gradeLabel(item.grade)}
+            </span>
+            <span class="product-card__eco-tag">🌱 Saves ${item.carbon_savings_kg} kg CO₂</span>
           </div>
           <div class="product-card__body">
+            <div class="product-card__category">${escapeHtml(item.category)}</div>
             <h3 class="product-card__name">${escapeHtml(item.name)}</h3>
             <div class="product-card__pricing">
               <span class="product-card__resale-price">₹${item.resale_price.toLocaleString('en-IN')}</span>
               <span class="product-card__original-price">₹${item.price.toLocaleString('en-IN')}</span>
+              <span class="product-card__discount">${discount}% off</span>
             </div>
-            <div class="product-card__grade">
-              <span class="product-card__grade-dot product-card__grade-dot--${badgeClass}"></span>
-              <span>${getGradeLabel(item.grade)}</span>
+            <div class="product-card__rating">
+              <span class="product-card__stars">${rating.stars}</span>
+              <span class="product-card__reviews">${rating.count.toLocaleString()} ratings</span>
             </div>
             <div class="product-card__carbon">
-              <span>🌱</span>
-              <span>Saved ${item.carbon_savings_kg} kg of CO2</span>
+              <span>🌍</span>
+              <span>Saves ${item.carbon_savings_kg} kg CO₂ vs buying new</span>
             </div>
-            <button class="product-card__cta">View Condition Report</button>
+            <button class="product-card__cta">View AI Condition Report</button>
           </div>
         `;
 
-        // Click handler opens modal
-        card.addEventListener('click', function () {
-          openModal(item);
-        });
-
-        // Keyboard accessibility
-        card.addEventListener('keydown', function (e) {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            openModal(item);
-          }
-        });
-
+        card.addEventListener('click', () => openModal(item));
         return card;
       }
 
-      /**
-       * Opens the item detail modal with full AI Condition Report.
-       * @param {Object} item - Product item data
-       */
+      // ── Render grid ──
+      function renderGrid(items) {
+        itemsContainer.innerHTML = '';
+        
+        let filtered = [];
+        if (activeFilter === 'all') {
+          filtered = items;
+        } else if (activeFilter === 'recommended') {
+          // Fake personalized recommendation logic based on user
+          const isMumbai = currentUser === 'user_002';
+          filtered = items.filter((i, index) => {
+             // For Delhi (user 1 & 5): show winter/accessories/electronics
+             // For Mumbai (user 2): show different items
+             if (isMumbai) return index % 2 !== 0;
+             return index % 2 === 0;
+          });
+        } else {
+          filtered = items.filter(i => i.category === activeFilter);
+        }
+
+        if (filtered.length === 0) {
+          itemsContainer.innerHTML = `
+            <div class="state-box">
+              <div class="state-box__icon">🔍</div>
+              <p class="state-box__text">No items found.</p>
+            </div>`;
+          itemCountEl.textContent = '';
+          return;
+        }
+
+        itemCountEl.textContent = `${filtered.length} item${filtered.length !== 1 ? 's' : ''} available`;
+
+        const grid = document.createElement('div');
+        grid.className = 'card-grid';
+        filtered.forEach((item, idx) => grid.appendChild(renderCard(item, idx)));
+        itemsContainer.appendChild(grid);
+      }
+
+      // ── Filter tabs ──
+      document.querySelectorAll('.filter-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          document.querySelector('.filter-tab.active').classList.remove('active');
+          tab.classList.add('active');
+          activeFilter = tab.dataset.filter;
+          renderGrid(allItems);
+        });
+      });
+
+      // ── Modal ──
       function openModal(item) {
-        const badgeClass = getBadgeClass(item.grade);
-        const savingsPercent = Math.round(((item.price - item.resale_price) / item.price) * 100);
+        const gc = gradeClass(item.grade);
+        const discount = Math.round(((item.price - item.resale_price) / item.price) * 100);
 
         modalBody.innerHTML = `
           <h2 class="modal__product-name">${escapeHtml(item.name)}</h2>
 
           <div class="modal__section">
-            <p class="modal__section-title">AI Condition Grade</p>
-            <span class="modal__grade-badge modal__grade-badge--${badgeClass}">
-              ✓ ${getGradeLabel(item.grade)}
+            <p class="modal__section-label">AI Condition Grade</p>
+            <span class="modal__grade-pill modal__grade-pill--${gc}">
+              ✓ Grade ${escapeHtml(item.grade)} — ${gradeLabel(item.grade)}
             </span>
-            <p class="modal__grade-explanation">${getGradeExplanation(item.grade)}</p>
+            <p class="modal__grade-explain">${gradeExplain(item.grade)}</p>
           </div>
 
           <div class="modal__section">
-            <p class="modal__section-title">Inspection Photos</p>
+            <p class="modal__section-label">Inspection Photos</p>
             <div class="modal__photos">
-              <div class="modal__photo-placeholder">${getCategoryIcon(item.category)}</div>
-              <div class="modal__photo-placeholder">📋</div>
-              <div class="modal__photo-placeholder">🔍</div>
+              <div class="modal__photo">${getIcon(item.category)}</div>
+              <div class="modal__photo">📋</div>
+              <div class="modal__photo">🔍</div>
+              <div class="modal__photo">✅</div>
             </div>
           </div>
 
           <div class="modal__section">
-            <p class="modal__section-title">Pricing</p>
-            <div class="modal__pricing">
-              <span class="modal__resale-price">₹${item.resale_price.toLocaleString('en-IN')}</span>
-              <span class="modal__original-price">₹${item.price.toLocaleString('en-IN')}</span>
-              <span class="modal__savings-tag">${savingsPercent}% off</span>
+            <p class="modal__section-label">Pricing</p>
+            <div class="modal__pricing-row">
+              <span class="modal__big-price">₹${item.resale_price.toLocaleString('en-IN')}</span>
+              <span class="modal__old-price">₹${item.price.toLocaleString('en-IN')}</span>
+              <span class="modal__savings-pill">Save ${discount}%</span>
             </div>
           </div>
 
           <div class="modal__section">
-            <p class="modal__section-title">Environmental Impact</p>
-            <div class="modal__carbon">
-              <span>🌍</span>
-              <span>Saved ${item.carbon_savings_kg} kg of CO2 by choosing refurbished</span>
+            <p class="modal__section-label">Environmental Impact</p>
+            <div class="modal__carbon-box">
+              <span class="modal__carbon-icon">🌍</span>
+              <span>Buying this refurbished saves <strong>${item.carbon_savings_kg} kg of CO₂</strong> compared to manufacturing new</span>
             </div>
           </div>
 
-          <button class="modal__cta">Add to Cart</button>
+          <button class="modal__cta-btn">Add to Cart — ₹${item.resale_price.toLocaleString('en-IN')}</button>
         `;
 
         modalOverlay.classList.add('active');
@@ -823,94 +1174,66 @@
         modalCloseBtn.focus();
       }
 
-      /**
-       * Closes the item detail modal.
-       */
       function closeModal() {
         modalOverlay.classList.remove('active');
         document.body.style.overflow = '';
       }
 
-      // Modal close handlers
       modalCloseBtn.addEventListener('click', closeModal);
-      modalOverlay.addEventListener('click', function (e) {
-        if (e.target === modalOverlay) {
-          closeModal();
-        }
-      });
-      document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape' && modalOverlay.classList.contains('active')) {
-          closeModal();
-        }
-      });
+      modalOverlay.addEventListener('click', e => { if (e.target === modalOverlay) closeModal(); });
+      document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
-      /**
-       * Renders the empty state message.
-       */
-      function renderEmptyState() {
-        itemsContainer.innerHTML = `
-          <div class="empty-state">
-            <div class="empty-state__icon">🏪</div>
-            <p class="empty-state__message">No items currently available. Check back soon!</p>
-          </div>
-        `;
-        itemCountEl.textContent = '';
+      // ── Animated counter ──
+      function animateCounter(el, target, prefix, suffix, duration) {
+        const start = performance.now();
+        const numTarget = parseFloat(String(target).replace(/[^0-9.]/g, ''));
+        function tick(now) {
+          const elapsed = now - start;
+          const progress = Math.min(elapsed / duration, 1);
+          const eased = 1 - Math.pow(1 - progress, 3);
+          const current = Math.round(numTarget * eased * 10) / 10;
+          el.textContent = prefix + (Number.isInteger(numTarget) ? Math.round(current).toLocaleString('en-IN') : current.toFixed(1)) + suffix;
+          if (progress < 1) requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
       }
 
-      /**
-       * Renders an error state with retry option.
-       * @param {string} message
-       */
-      function renderError(message) {
-        itemsContainer.innerHTML = `
-          <div class="error-state">
-            <div class="error-state__icon">⚠️</div>
-            <p class="error-state__text">${escapeHtml(message)}</p>
-            <button class="error-state__retry" onclick="location.reload()">Retry</button>
-          </div>
-        `;
-        itemCountEl.textContent = '';
-      }
-
-      /**
-       * Fetches items from GET /api/second-life and renders the card grid.
-       */
+      // ── Load items ──
       async function loadItems() {
         try {
-          const response = await fetch('/api/second-life');
-          if (!response.ok) {
-            throw new Error(`Failed to load items (${response.status})`);
-          }
+          const res = await fetch('/api/second-life');
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          allItems = await res.json();
 
-          const items = await response.json();
-
-          if (!items || items.length === 0) {
-            renderEmptyState();
+          if (!allItems || allItems.length === 0) {
+            itemsContainer.innerHTML = `
+              <div class="state-box">
+                <div class="state-box__icon">🏪</div>
+                <p class="state-box__text">No items available yet. Check back soon!</p>
+              </div>`;
             return;
           }
 
-          // Update count
-          itemCountEl.textContent = `${items.length} item${items.length !== 1 ? 's' : ''} available`;
+          renderGrid(allItems);
 
-          // Render card grid
-          itemsContainer.innerHTML = '';
-          const grid = document.createElement('div');
-          grid.className = 'card-grid';
+          // Animate impact stats
+          const totalCO2 = allItems.reduce((s, i) => s + (i.carbon_savings_kg || 0), 0);
+          const totalSavings = allItems.reduce((s, i) => s + (i.price - i.resale_price), 0);
+          animateCounter(document.getElementById('stat-co2'), totalCO2, '', ' kg', 1800);
+          animateCounter(document.getElementById('stat-items'), allItems.length, '', '', 1200);
+          animateCounter(document.getElementById('stat-savings'), totalSavings, '₹', '', 2000);
 
-          items.forEach(function (item) {
-            const card = renderCard(item);
-            grid.appendChild(card);
-          });
-
-          itemsContainer.appendChild(grid);
-
-        } catch (error) {
-          console.error('[SecondLife] Error loading items:', error.message);
-          renderError('Unable to load marketplace items. Please try again.');
+        } catch (err) {
+          console.error('[SecondLife] Error:', err.message);
+          itemsContainer.innerHTML = `
+            <div class="state-box">
+              <div class="state-box__icon">⚠️</div>
+              <p class="state-box__text" style="color: #CC0000;">Failed to load items.</p>
+              <button class="retry-btn" onclick="location.reload()">Retry</button>
+            </div>`;
         }
       }
 
-      // Initialize on page load
       document.addEventListener('DOMContentLoaded', loadItems);
     })();
   </script>

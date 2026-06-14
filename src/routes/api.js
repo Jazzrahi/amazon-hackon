@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-const { getUserById, getProductById, getSecondLifeItems, getOrdersByUserId, readDB } = require('../services/dataStore');
+const { getUserById, getProductById, getSecondLifeItems, getOrdersByUserId, readDB, updateUserCredits, markItemAsAmazonOwned, writeDB } = require('../services/dataStore');
 const { gradeItem } = require('../services/gradingEngine');
 const { calculateResalePrice } = require('../services/pricingEngine');
 const { getDemandScore } = require('../services/demandPredictor');
@@ -71,12 +71,15 @@ router.post('/process-return', (req, res) => {
     db.demand
   );
 
-  // Step 4: Route the return
+  // Step 4: Route the return (with new params for donate/recycle/exchange)
   const routingResult = routeReturn({
     trustScore: user.trust_score,
     returnShippingCost: product.return_shipping_cost,
     productPrice: product.price,
-    demandClassification
+    demandClassification,
+    grade,
+    category: product.category,
+    highReturnRisk: product.high_return_risk
   });
 
   // Step 5: Schedule pickup
@@ -93,6 +96,10 @@ router.post('/process-return', (req, res) => {
     reasoning: `Rule applied: ${routingResult.rule}. Trust score: ${routingResult.trustScore}, Shipping ratio: ${routingResult.shippingRatio}`,
     resale_price: resalePrice,
     markdown_percent: markdownPercent,
+    product_name: product.name,
+    product_price: product.price,
+    category: product.category,
+    carbon_savings_kg: product.carbon_savings_kg,
     pickup: {
       scheduled: pickupResult.scheduled,
       pickup_day: pickupResult.pickupDay || null,
@@ -102,6 +109,80 @@ router.post('/process-return', (req, res) => {
   };
 
   res.json(response);
+});
+
+/**
+ * POST /api/accept-green-credit
+ * Credits the user's green_credits balance and marks order as resolved
+ */
+router.post('/accept-green-credit', (req, res) => {
+  const { user_id, product_id, amount } = req.body;
+
+  if (!user_id || !amount) {
+    return res.status(400).json({ error: 'Missing user_id or amount' });
+  }
+
+  const updatedUser = updateUserCredits(user_id, amount);
+  if (!updatedUser) {
+    return res.status(400).json({ error: 'User not found' });
+  }
+
+  // Mark the order as returned
+  if (product_id) {
+    const db = readDB();
+    const order = db.orders.find(o => o.user_id === user_id && o.product_id === product_id);
+    if (order) {
+      order.returned = true;
+      order.return_type = 'green_credit';
+      writeDB(db);
+    }
+  }
+
+  res.json({
+    success: true,
+    new_balance: updatedUser.green_credits,
+    message: `₹${amount} Green Credits added. New balance: ₹${updatedUser.green_credits}`
+  });
+});
+
+/**
+ * POST /api/list-for-resale
+ * Changes product ownership to amazon, sets grade and resale price
+ */
+router.post('/list-for-resale', (req, res) => {
+  const { user_id, product_id, grade, resale_price } = req.body;
+
+  if (!product_id) {
+    return res.status(400).json({ error: 'Missing product_id' });
+  }
+
+  const db = readDB();
+  const product = db.products.find(p => p.id === product_id);
+  if (!product) {
+    return res.status(400).json({ error: 'Product not found' });
+  }
+
+  product.inventory_owner = 'amazon';
+  product.graded = true;
+  product.grade = grade || 'B';
+  product.resale_price = resale_price || Math.round(product.price * 0.7);
+
+  // Mark the order as returned
+  if (user_id) {
+    const order = db.orders.find(o => o.user_id === user_id && o.product_id === product_id);
+    if (order) {
+      order.returned = true;
+      order.return_type = 'p2p_resale';
+    }
+  }
+
+  writeDB(db);
+
+  res.json({
+    success: true,
+    message: `${product.name} is now listed on Second Life Marketplace`,
+    product
+  });
 });
 
 /**
@@ -120,6 +201,38 @@ router.get('/second-life', (req, res) => {
 router.get('/orders/:userId', (req, res) => {
   const orders = getOrdersByUserId(req.params.userId);
   res.json(orders);
+});
+
+/**
+ * GET /api/user/:id
+ * Returns user details including green credits balance
+ */
+router.get('/user/:id', (req, res) => {
+  const user = getUserById(req.params.id);
+  if (!user) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+  res.json(user);
+});
+
+/**
+ * GET /api/sustainability-stats
+ * Returns aggregated impact statistics
+ */
+router.get('/sustainability-stats', (req, res) => {
+  const db = readDB();
+  const secondLifeItems = db.products.filter(p => p.inventory_owner === 'amazon');
+  const totalCO2 = secondLifeItems.reduce((sum, p) => sum + (p.carbon_savings_kg || 0), 0);
+  const totalCredits = db.users.reduce((sum, u) => sum + (u.green_credits || 0), 0);
+  const returnedOrders = db.orders.filter(o => o.returned === true).length;
+
+  res.json({
+    items_rescued: secondLifeItems.length,
+    total_co2_saved_kg: Math.round(totalCO2 * 10) / 10,
+    total_green_credits_issued: totalCredits,
+    returns_processed: returnedOrders,
+    ewaste_prevented_kg: Math.round(totalCO2 * 0.3 * 10) / 10
+  });
 });
 
 // Error handling middleware for this router
