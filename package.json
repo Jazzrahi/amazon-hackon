@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "test": "node --test tests/**/*.test.js",
-    "test:property": "node --test tests/**/*.property.js"
+    "test:property": "node --test tests/**/*.property.js",
+    "reset-db": "cp data/db.seed.json data/db.json"
   },
   "repository": {
     "type": "git",

@@ -902,5 +902,18 @@
     }
   </script>
 
+
+<script>
+  function updateGlobalCartCount() {
+    const cc = document.getElementById('nav-cart-count');
+    if (cc) {
+      const cart = JSON.parse(localStorage.getItem('cart')) || [];
+      cc.textContent = cart.length;
+    }
+  }
+  document.addEventListener('DOMContentLoaded', updateGlobalCartCount);
+  // Optional: Listen for custom events if added on same page
+  window.addEventListener('storage', updateGlobalCartCount);
+</script>
 </body>
 </html>
