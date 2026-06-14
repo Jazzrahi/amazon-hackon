@@ -13,6 +13,8 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // API routes
+
+// API routes
 const apiRoutes = require('./src/routes/api');
 app.use('/api', apiRoutes);
 

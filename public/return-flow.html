@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Return — AI-Powered Return Processing</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy-900: #0F1923;
+      --navy-700: #232F3E;
+      --navy-600: #37475A;
+      --orange-500: #FF9900;
+      --orange-400: #FFB84D;
+      --green-500: #00A86B;
+      --green-400: #2ED889;
+      --green-600: #067D62;
+      --green-bg: rgba(0,168,107,0.08);
+      --blue-500: #1A73E8;
+      --blue-bg: rgba(26,115,232,0.08);
+      --purple-500: #7B61FF;
+      --purple-bg: rgba(123,97,255,0.08);
+      --red-500: #E53935;
+      --white: #FFF;
+      --gray-50: #FAFAFA;
+      --gray-100: #F5F5F5;
+      --gray-200: #EAEDED;
+      --gray-300: #D5D9D9;
+      --gray-400: #999;
+      --gray-600: #565959;
+      --gray-800: #0F1111;
+      --radius: 12px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--gray-100);
+      color: var(--gray-800);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .header {
+      background: linear-gradient(180deg, var(--navy-900), var(--navy-700));
+      padding: 0 24px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header__inner {
+      max-width: 720px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      height: 56px;
+      gap: 14px;
+    }
+
+    .header__back {
+      color: var(--white);
+      text-decoration: none;
+      font-size: 18px;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      transition: background 0.2s;
+    }
+
+    .header__back:hover { background: rgba(255,255,255,0.1); }
+
+    .header__title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--white);
+    }
+
+    .header__title span { color: var(--orange-500); }
+
+    .container {
+      max-width: 560px;
+      margin: 0 auto;
+      padding: 24px 20px 48px;
+    }
+
+    /* ─── PROGRESS BAR ─── */
+    .progress {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-bottom: 28px;
+    }
+
+    .progress__step {
+      flex: 1;
+      height: 4px;
+      border-radius: 2px;
+      background: var(--gray-300);
+      transition: background 0.4s;
+    }
+
+    .progress__step.done { background: var(--green-500); }
+    .progress__step.active { background: var(--orange-500); }
+
+    /* ─── STEP CARDS ─── */
+    .step-card {
+      background: var(--white);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius);
+      padding: 32px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      animation: fadeIn 0.35s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .step-card__icon {
+      font-size: 40px;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    .step-card__title {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--navy-700);
+      margin-bottom: 8px;
+      text-align: center;
+    }
+
+    .step-card__desc {
+      font-size: 14px;
+      color: var(--gray-600);
+      text-align: center;
+      line-height: 1.6;
+      margin-bottom: 28px;
+    }
+
+    /* ─── UPLOAD AREA ─── */
+    .upload-area {
+      border: 2px dashed var(--gray-300);
+      border-radius: var(--radius);
+      padding: 40px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.25s;
+      background: var(--gray-50);
+      margin-bottom: 20px;
+    }
+
+    .upload-area:hover {
+      border-color: var(--orange-500);
+      background: rgba(255,153,0,0.03);
+    }
+
+    .upload-area.uploaded {
+      border-color: var(--green-500);
+      border-style: solid;
+      background: var(--green-bg);
+    }
+
+    .upload-area__icon { font-size: 44px; margin-bottom: 10px; }
+
+    .upload-area__text {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--gray-600);
+    }
+
+    .upload-area.uploaded .upload-area__text { color: var(--green-600); }
+
+    /* ─── BUTTONS ─── */
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px 20px;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s;
+      text-align: center;
+      text-decoration: none;
+    }
+
+    .btn:active { transform: scale(0.98); }
+
+    .btn--primary {
+      background: linear-gradient(180deg, #FFD814 0%, #FF9900 100%);
+      color: var(--navy-900);
+    }
+
+    .btn--primary:hover { background: linear-gradient(180deg, #F7CA00 0%, #E68A00 100%); }
+
+    .btn--primary:disabled {
+      background: var(--gray-200);
+      color: var(--gray-400);
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn--green {
+      background: linear-gradient(135deg, var(--green-500), var(--green-400));
+      color: var(--white);
+    }
+
+    .btn--outline {
+      background: var(--white);
+      color: var(--gray-600);
+      border: 1px solid var(--gray-300);
+      margin-top: 10px;
+    }
+
+    .btn--outline:hover { background: var(--gray-50); }
+
+    /* ─── AI ANALYSIS ─── */
+    .analysis-steps {
+      list-style: none;
+      margin-bottom: 24px;
+    }
+
+    .analysis-step {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--gray-200);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--gray-400);
+      transition: color 0.3s;
+    }
+
+    .analysis-step:last-child { border-bottom: none; }
+
+    .analysis-step.active {
+      color: var(--navy-700);
+    }
+
+    .analysis-step.done {
+      color: var(--green-600);
+    }
+
+    .analysis-step__icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+      background: var(--gray-200);
+      transition: all 0.3s;
+    }
+
+    .analysis-step.active .analysis-step__icon {
+      background: var(--orange-500);
+      color: var(--white);
+      animation: pulse 1s ease-in-out infinite;
+    }
+
+    .analysis-step.done .analysis-step__icon {
+      background: var(--green-500);
+      color: var(--white);
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.15); }
+    }
+
+    .analysis-bar {
+      width: 100%;
+      height: 6px;
+      background: var(--gray-200);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+
+    .analysis-bar__fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--orange-500), var(--green-400));
+      border-radius: 3px;
+      transition: width 0.3s;
+      width: 0%;
+    }
+
+    /* ─── GRADE RESULT ─── */
+    .grade-result {
+      text-align: center;
+      margin-bottom: 24px;
+      animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.8); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .grade-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--white);
+      margin-bottom: 10px;
+    }
+
+    .grade-badge--a { background: linear-gradient(135deg, #00A86B, #2ED889); }
+    .grade-badge--b { background: linear-gradient(135deg, #D4A017, #E8B830); }
+    .grade-badge--c { background: linear-gradient(135deg, #E07020, #F08838); }
+
+    .grade-confidence {
+      font-size: 12px;
+      color: var(--gray-400);
+      font-weight: 600;
+    }
+
+    .grade-explain {
+      font-size: 13px;
+      color: var(--gray-600);
+      font-style: italic;
+      margin-top: 6px;
+      line-height: 1.5;
+    }
+
+    /* ─── RESULT CARDS ─── */
+    .result-card {
+      display: none;
+      animation: slideUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .result-card.visible { display: block; }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .result-header {
+      text-align: center;
+      padding: 28px 20px;
+      border-radius: var(--radius) var(--radius) 0 0;
+      margin: -32px -32px 24px;
+    }
+
+    .result-header--green { background: linear-gradient(135deg, #00A86B, #0D7C5A); }
+    .result-header--blue { background: linear-gradient(135deg, #1A73E8, #4A90D9); }
+    .result-header--purple { background: linear-gradient(135deg, #7B61FF, #9B85FF); }
+    .result-header--orange { background: linear-gradient(135deg, #E07020, #F09050); }
+    .result-header--teal { background: linear-gradient(135deg, #009688, #26A69A); }
+    .result-header--navy { background: linear-gradient(135deg, var(--navy-900), var(--navy-600)); }
+
+    .result-header__icon { font-size: 44px; margin-bottom: 10px; }
+
+    .result-header__title {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--white);
+      margin-bottom: 6px;
+    }
+
+    .result-header__subtitle {
+      font-size: 13px;
+      color: rgba(255,255,255,0.8);
+    }
+
+    .result-body { padding: 0 0 8px; }
+
+    .result-highlight {
+      text-align: center;
+      font-size: 32px;
+      font-weight: 900;
+      color: var(--green-500);
+      margin-bottom: 8px;
+    }
+
+    .result-detail {
+      font-size: 14px;
+      color: var(--gray-600);
+      text-align: center;
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+
+    .result-info-box {
+      background: var(--gray-50);
+      border: 1px solid var(--gray-200);
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+
+    .result-info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      font-size: 13px;
+    }
+
+    .result-info-row:not(:last-child) { border-bottom: 1px solid var(--gray-200); }
+
+    .result-info-label { color: var(--gray-600); }
+    .result-info-value { font-weight: 700; color: var(--navy-700); }
+
+    .result-eco-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--green-bg);
+      border: 1px solid rgba(0,168,107,0.15);
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--green-600);
+      margin-bottom: 20px;
+    }
+
+    .result-eco-box__icon { font-size: 18px; }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <div class="header__inner">
+      <a href="orders.html" class="header__back">←</a>
+      <h1 class="header__title"><span>Smart</span> Return</h1>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <!-- Progress -->
+    <div class="progress">
+      <div class="progress__step active" id="prog-1"></div>
+      <div class="progress__step" id="prog-2"></div>
+      <div class="progress__step" id="prog-3"></div>
+    </div>
+
+    <!-- ═══ STEP 1: UPLOAD ═══ -->
+    <div id="step-upload" class="step-card">
+      <div class="step-card__icon">📸</div>
+      <h2 class="step-card__title">Upload Item Photo</h2>
+      <p class="step-card__desc">Take a quick photo of your item so our AI can assess its condition and find the best sustainable option for you.</p>
+
+      <div class="upload-area" id="upload-area">
+        <div class="upload-area__icon" id="upload-icon">📷</div>
+        <div class="upload-area__text" id="upload-text">Tap to capture or upload photo</div>
+      </div>
+
+      <button id="submit-btn" class="btn btn--primary" disabled>Submit for AI Analysis</button>
+    </div>
+
+    <!-- ═══ STEP 2: AI ANALYSIS ═══ -->
+    <div id="step-analysis" class="step-card hidden">
+      <div class="step-card__icon">🤖</div>
+      <h2 class="step-card__title">AI Analysis in Progress</h2>
+      <p class="step-card__desc">Our AI is inspecting your item and calculating the most sustainable return option.</p>
+
+      <ul class="analysis-steps">
+        <li class="analysis-step" id="as-1">
+          <span class="analysis-step__icon">📸</span>
+          <span>Processing uploaded image…</span>
+        </li>
+        <li class="analysis-step" id="as-2">
+          <span class="analysis-step__icon">🔍</span>
+          <span>Analyzing surface condition & defects…</span>
+        </li>
+        <li class="analysis-step" id="as-3">
+          <span class="analysis-step__icon">🧪</span>
+          <span>Running quality grading model…</span>
+        </li>
+        <li class="analysis-step" id="as-4">
+          <span class="analysis-step__icon">📊</span>
+          <span>Checking regional demand & logistics…</span>
+        </li>
+        <li class="analysis-step" id="as-5">
+          <span class="analysis-step__icon">🌱</span>
+          <span>Calculating sustainability impact…</span>
+        </li>
+      </ul>
+
+      <div class="analysis-bar">
+        <div class="analysis-bar__fill" id="analysis-bar-fill"></div>
+      </div>
+    </div>
+
+    <!-- ═══ STEP 3: RESULT ═══ -->
+    <div id="step-result" class="step-card hidden">
+
+      <!-- Grade Result (always shown first) -->
+      <div class="grade-result" id="grade-display"></div>
+
+      <!-- Green Credit -->
+      <div id="result-green_credit" class="result-card">
+        <div class="result-header result-header--green">
+          <div class="result-header__icon">🌱</div>
+          <h2 class="result-header__title">Keep the Item!</h2>
+          <p class="result-header__subtitle">Save a reverse-shipping trip and earn Green Credits</p>
+        </div>
+        <div class="result-body">
+          <div class="result-highlight" id="gc-amount">₹0</div>
+          <p class="result-detail">We'll credit this amount to your Amazon Pay balance as a <strong>Green Credit</strong> for helping reduce carbon emissions.</p>
+          <div class="result-info-box" id="gc-info"></div>
+          <div class="result-eco-box">
+            <span class="result-eco-box__icon">🌍</span>
+            <span id="gc-eco">Keeping this item saves shipping emissions</span>
+          </div>
+          <button class="btn btn--green" onclick="acceptGreenCredit()">Accept Green Credit</button>
+          <button class="btn btn--outline" onclick="location.href='orders.html'">No thanks, standard return</button>
+        </div>
+      </div>
+
+      <!-- P2P Resale -->
+      <div id="result-p2p_resale" class="result-card">
+        <div class="result-header result-header--blue">
+          <div class="result-header__icon">🤝</div>
+          <h2 class="result-header__title">List on Local Resale</h2>
+          <p class="result-header__subtitle">High demand detected in your area!</p>
+        </div>
+        <div class="result-body">
+          <p class="result-detail">Your item is in great condition. List it on <strong>Amazon Second Life</strong> and we'll connect you with a buyer in your city.</p>
+          <div class="result-info-box" id="p2p-info"></div>
+          <div class="result-eco-box">
+            <span class="result-eco-box__icon">♻️</span>
+            <span id="p2p-eco">Reselling keeps this product out of landfill</span>
+          </div>
+          <button class="btn btn--primary" onclick="listForResale()">List on Second Life</button>
+          <button class="btn btn--outline" onclick="location.href='orders.html'">Standard return instead</button>
+        </div>
+      </div>
+
+      <!-- Recycle -->
+      <div id="result-recycle" class="result-card">
+        <div class="result-header result-header--teal">
+          <div class="result-header__icon">♻️</div>
+          <h2 class="result-header__title">Responsible E-Waste Recycling</h2>
+          <p class="result-header__subtitle">This electronic item will be safely recycled</p>
+        </div>
+        <div class="result-body">
+          <p class="result-detail">We'll partner with a certified e-waste recycler to responsibly process this item. You'll earn <strong>30 Green Credits</strong> for keeping it out of landfill.</p>
+          <div class="result-info-box" id="recycle-info"></div>
+          <div class="result-eco-box">
+            <span class="result-eco-box__icon">🔋</span>
+            <span id="recycle-eco">Prevents hazardous e-waste from reaching landfill</span>
+          </div>
+          <button class="btn btn--green" onclick="acceptGreenCredit()">Confirm Recycling (+30 Credits)</button>
+          <button class="btn btn--outline" onclick="location.href='orders.html'">Standard return instead</button>
+        </div>
+      </div>
+
+      <!-- Donate -->
+      <div id="result-donate" class="result-card">
+        <div class="result-header result-header--purple">
+          <div class="result-header__icon">💜</div>
+          <h2 class="result-header__title">Donate to Someone in Need</h2>
+          <p class="result-header__subtitle">This item can brighten someone's day!</p>
+        </div>
+        <div class="result-body">
+          <p class="result-detail">We'll donate this item to <strong>Goonj Foundation</strong>, a verified charity partner. You'll earn <strong>50 Green Credits</strong> for your kindness.</p>
+          <div class="result-info-box" id="donate-info"></div>
+          <div class="result-eco-box">
+            <span class="result-eco-box__icon">🤲</span>
+            <span id="donate-eco">Your donation helps reduce textile waste</span>
+          </div>
+          <button class="btn btn--green" onclick="acceptGreenCredit()">Confirm Donation (+50 Credits)</button>
+          <button class="btn btn--outline" onclick="location.href='orders.html'">Standard return instead</button>
+        </div>
+      </div>
+
+      <!-- Exchange -->
+      <div id="result-exchange" class="result-card">
+        <div class="result-header result-header--orange">
+          <div class="result-header__icon">🔄</div>
+          <h2 class="result-header__title">Wrong Size? Exchange It!</h2>
+          <p class="result-header__subtitle">We detected a sizing issue — let's fix it</p>
+        </div>
+        <div class="result-body">
+          <p class="result-detail">Our AI detected this brand has a high return rate for sizing. <strong>Exchange for the right size</strong> and we'll ship it directly — no return needed!</p>
+          <div class="result-info-box" id="exchange-info"></div>
+          <div class="result-eco-box">
+            <span class="result-eco-box__icon">📦</span>
+            <span>Direct exchange saves 2 shipping trips vs return + re-order</span>
+          </div>
+          <button class="btn btn--primary" onclick="location.href='orders.html?status=credit_accepted'">Exchange for Free</button>
+          <button class="btn btn--outline" onclick="location.href='orders.html'">Standard return instead</button>
+        </div>
+      </div>
+
+      <!-- Standard Return -->
+      <div id="result-standard_return" class="result-card">
+        <div class="result-header result-header--navy">
+          <div class="result-header__icon">📦</div>
+          <h2 class="result-header__title">Standard Return</h2>
+          <p class="result-header__subtitle">Your return label has been generated</p>
+        </div>
+        <div class="result-body">
+          <p class="result-detail">A prepaid shipping label has been sent to your email. Pack the item securely and drop it off at your nearest pickup point.</p>
+          <div class="result-info-box" id="standard-info"></div>
+          <button class="btn btn--primary" onclick="location.href='orders.html'">View Return Instructions</button>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const userId = params.get('user_id') || 'user_001';
+    const productId = params.get('product_id') || 'prod_001';
+
+    let returnData = null;
+
+    // ── Elements ──
+    const uploadArea = document.getElementById('upload-area');
+    const uploadIcon = document.getElementById('upload-icon');
+    const uploadText = document.getElementById('upload-text');
+    const submitBtn = document.getElementById('submit-btn');
+    const stepUpload = document.getElementById('step-upload');
+    const stepAnalysis = document.getElementById('step-analysis');
+    const stepResult = document.getElementById('step-result');
+
+    let photoUploaded = false;
+
+    // ── Upload mock ──
+    uploadArea.addEventListener('click', () => {
+      if (photoUploaded) return;
+      uploadArea.classList.add('uploaded');
+      uploadIcon.textContent = '✅';
+      uploadText.textContent = 'Photo uploaded successfully';
+      photoUploaded = true;
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Analyze with AI →';
+    });
+
+    // ── Submit ──
+    submitBtn.addEventListener('click', async () => {
+      if (!photoUploaded) return;
+
+      // Move to step 2
+      stepUpload.classList.add('hidden');
+      stepAnalysis.classList.remove('hidden');
+      updateProgress(2);
+
+      // Start API call in parallel with animation
+      const apiPromise = fetch('/api/process-return', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: userId, product_id: productId })
+      }).then(r => r.json());
+
+      // Run analysis animation
+      await runAnalysisAnimation();
+
+      // Wait for API
+      try {
+        returnData = await apiPromise;
+        showResult(returnData);
+      } catch (err) {
+        alert('Error processing return. Please try again.');
+        stepAnalysis.classList.add('hidden');
+        stepUpload.classList.remove('hidden');
+        updateProgress(1);
+      }
+    });
+
+    // ── Analysis animation ──
+    async function runAnalysisAnimation() {
+      const steps = ['as-1', 'as-2', 'as-3', 'as-4', 'as-5'];
+      const bar = document.getElementById('analysis-bar-fill');
+
+      for (let i = 0; i < steps.length; i++) {
+        const el = document.getElementById(steps[i]);
+        el.classList.add('active');
+        bar.style.width = `${((i + 0.5) / steps.length) * 100}%`;
+
+        await sleep(600 + Math.random() * 400);
+
+        el.classList.remove('active');
+        el.classList.add('done');
+        bar.style.width = `${((i + 1) / steps.length) * 100}%`;
+
+        await sleep(200);
+      }
+
+      await sleep(400);
+    }
+
+    function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+    // ── Show result ──
+    function showResult(data) {
+      stepAnalysis.classList.add('hidden');
+      stepResult.classList.remove('hidden');
+      updateProgress(3);
+
+      // Show grade
+      const gc = { A: 'a', B: 'b', C: 'c' }[data.grade] || 'b';
+      const gl = { A: 'Like New', B: 'Good Condition', C: 'Fair' }[data.grade] || data.grade;
+      const conf = { A: '97%', B: '89%', C: '74%' }[data.grade] || '85%';
+
+      document.getElementById('grade-display').innerHTML = `
+        <div class="grade-badge grade-badge--${gc}">✓ Grade ${data.grade} — ${gl}</div>
+        <div class="grade-confidence">AI Confidence: ${conf}</div>
+        <p class="grade-explain">${data.grade_explanation}</p>
+      `;
+
+      // Show decision-specific card
+      const card = document.getElementById(`result-${data.decision}`);
+      if (card) {
+        card.classList.add('visible');
+        populateResultInfo(data);
+      }
+    }
+
+    function populateResultInfo(d) {
+      const name = d.product_name || 'Product';
+      const price = d.product_price || 0;
+      const co2 = d.carbon_savings_kg || 0;
+
+      if (d.decision === 'green_credit') {
+        document.getElementById('gc-amount').textContent = `₹${d.offer_amount}`;
+        document.getElementById('gc-info').innerHTML = infoRows([
+          ['Item', name],
+          ['Original Price', `₹${price.toLocaleString('en-IN')}`],
+          ['Credit Amount', `₹${d.offer_amount}`],
+          ['Trust Score', `${d.reasoning.match(/Trust score: (\d+)/)?.[1] || '—'}/100`],
+        ]);
+        document.getElementById('gc-eco').textContent = `Keeping this item saves ${co2} kg of CO₂ in shipping emissions`;
+      }
+
+      if (d.decision === 'p2p_resale') {
+        document.getElementById('p2p-info').innerHTML = infoRows([
+          ['Item', name],
+          ['Suggested Resale Price', `₹${d.resale_price.toLocaleString('en-IN')}`],
+          ['Discount from Original', `${d.markdown_percent}% off`],
+          ['Local Demand', d.demand_classification === 'high' ? '🔥 High' : 'Low'],
+        ]);
+        document.getElementById('p2p-eco').textContent = `Reselling saves ${co2} kg of CO₂ vs manufacturing new`;
+      }
+
+      if (d.decision === 'recycle') {
+        document.getElementById('recycle-info').innerHTML = infoRows([
+          ['Item', name],
+          ['Category', 'Electronics'],
+          ['Recycling Partner', 'EcoCycle India Pvt. Ltd.'],
+          ['Green Credits Earned', '+30 credits'],
+        ]);
+        document.getElementById('recycle-eco').textContent = `Prevents ${co2} kg of e-waste from reaching landfill`;
+      }
+
+      if (d.decision === 'donate') {
+        document.getElementById('donate-info').innerHTML = infoRows([
+          ['Item', name],
+          ['Charity Partner', 'Goonj Foundation'],
+          ['Green Credits Earned', '+50 credits'],
+          ['Tax Benefit', 'Eligible under 80G'],
+        ]);
+        document.getElementById('donate-eco').textContent = `Your donation saves ${co2} kg of CO₂ and helps someone in need`;
+      }
+
+      if (d.decision === 'exchange') {
+        document.getElementById('exchange-info').innerHTML = infoRows([
+          ['Item', name],
+          ['Issue Detected', 'Sizing mismatch (brand runs small)'],
+          ['Exchange Cost', 'FREE'],
+          ['Estimated Delivery', 'Within 3-4 days'],
+        ]);
+      }
+
+      if (d.decision === 'standard_return') {
+        document.getElementById('standard-info').innerHTML = infoRows([
+          ['Item', name],
+          ['Return Method', 'Prepaid shipping label'],
+          ['Pickup', d.pickup?.scheduled ? `${d.pickup.pickup_day}, ${d.pickup.time_window}` : 'Drop-off at nearest point'],
+          ['Refund Timeline', '5-7 business days'],
+        ]);
+      }
+    }
+
+    function infoRows(rows) {
+      return rows.map(([l, v]) =>
+        `<div class="result-info-row"><span class="result-info-label">${l}</span><span class="result-info-value">${v}</span></div>`
+      ).join('');
+    }
+
+    // ── Actions ──
+    async function acceptGreenCredit() {
+      if (!returnData) return;
+      try {
+        await fetch('/api/accept-green-credit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: userId,
+            product_id: productId,
+            amount: returnData.offer_amount || 0
+          })
+        });
+        location.href = 'orders.html?status=credit_accepted';
+      } catch (e) {
+        location.href = 'orders.html?status=credit_accepted';
+      }
+    }
+
+    async function listForResale() {
+      if (!returnData) return;
+      try {
+        await fetch('/api/list-for-resale', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: userId,
+            product_id: productId,
+            grade: returnData.grade,
+            resale_price: returnData.resale_price
+          })
+        });
+        location.href = 'second-life.html?status=listed';
+      } catch (e) {
+        location.href = 'second-life.html?status=listed';
+      }
+    }
+
+    // ── Progress bar ──
+    function updateProgress(step) {
+      for (let i = 1; i <= 3; i++) {
+        const el = document.getElementById(`prog-${i}`);
+        el.classList.remove('active', 'done');
+        if (i < step) el.classList.add('done');
+        if (i === step) el.classList.add('active');
+      }
+    }
+  </script>
+
+</body>
+</html>
