@@ -462,6 +462,7 @@
       <p class="step-card__desc">Take a quick photo of your item so our AI can assess its condition and find the best sustainable option for you.</p>
 
       <div class="upload-area" id="upload-area">
+        <input type="file" id="file-input" accept="image/*" capture="environment" style="display: none;">
         <div class="upload-area__icon" id="upload-icon">📷</div>
         <div class="upload-area__text" id="upload-text">Tap to capture or upload photo</div>
       </div>
@@ -642,14 +643,22 @@
     let photoUploaded = false;
 
     // ── Upload mock ──
+    const fileInput = document.getElementById('file-input');
+
     uploadArea.addEventListener('click', () => {
       if (photoUploaded) return;
-      uploadArea.classList.add('uploaded');
-      uploadIcon.textContent = '✅';
-      uploadText.textContent = 'Photo uploaded successfully';
-      photoUploaded = true;
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Analyze with AI →';
+      fileInput.click();
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files.length > 0) {
+        uploadArea.classList.add('uploaded');
+        uploadIcon.textContent = '✅';
+        uploadText.textContent = 'Photo uploaded successfully';
+        photoUploaded = true;
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Analyze with AI →';
+      }
     });
 
     // ── Submit ──
