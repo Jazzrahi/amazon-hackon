@@ -2,6 +2,26 @@ const { GoogleGenAI } = require('@google/genai');
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
+// Use gemini-2.0-flash (1500 req/day free). Change here to switch all calls.
+const GEMINI_MODEL = 'gemini-2.0-flash';
+
+// Retry helper: waits and retries on 429 rate limit errors
+async function callWithRetry(fn, maxRetries = 2) {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      if (err.status === 429 && attempt < maxRetries) {
+        const waitSec = Math.min(15, 5 * (attempt + 1));
+        console.log(`[VisionAI] Rate limited. Waiting ${waitSec}s before retry ${attempt + 1}/${maxRetries}...`);
+        await new Promise(r => setTimeout(r, waitSec * 1000));
+      } else {
+        throw err;
+      }
+    }
+  }
+}
+
 /**
  * Analyzes a base64 image against an expected product category.
  * @param {string} base64Image - Base64 encoded image string (without the data URL prefix)
@@ -53,8 +73,8 @@ async function analyzeImage(base64Image, mimeType, expectedCategory, productName
       }
     `;
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+    const response = await callWithRetry(() => ai.models.generateContent({
+      model: GEMINI_MODEL,
       contents: [
         {
           role: 'user',
@@ -72,7 +92,7 @@ async function analyzeImage(base64Image, mimeType, expectedCategory, productName
       config: {
         responseMimeType: 'application/json',
       }
-    });
+    }));
 
     const resultText = response.text;
     const jsonResult = JSON.parse(resultText);
@@ -91,4 +111,169 @@ async function analyzeImage(base64Image, mimeType, expectedCategory, productName
   }
 }
 
-module.exports = { analyzeImage };
+/**
+ * Analyzes a bill/receipt image to verify it's legitimate.
+ * @param {string} base64Image - Base64 encoded bill image
+ * @param {string} mimeType - The mime type (e.g., 'image/jpeg')
+ * @param {string} expectedProduct - The product name being returned
+ * @returns {Promise<Object|null>} - { isValid, productMatch, withinReturnWindow, confidence, explanation }
+ */
+async function analyzeBill(base64Image, mimeType, expectedProduct) {
+  if (!process.env.GEMINI_API_KEY) {
+    console.warn('[VisionAI] No GEMINI_API_KEY found. Falling back to mock bill verification.');
+    return null;
+  }
+
+  try {
+    const prompt = `
+      You are an expert Amazon Returns Bill Inspector.
+      The customer claims to be returning: "${expectedProduct || 'unknown product'}".
+      
+      Examine the uploaded image carefully.
+      
+      STEP 1 — IS THIS A BILL/RECEIPT?
+      Check if the image is actually a purchase bill, invoice, or receipt.
+      If it's a random photo (selfie, landscape, meme, etc.), set isBill=false.
+      
+      STEP 2 — PRODUCT MATCH (only if isBill=true):
+      Does the bill mention a product that reasonably matches "${expectedProduct}"?
+      Be lenient — "Cotton Kurta Set" matches "Kurta", "Women's Cotton Set", etc.
+      
+      STEP 3 — DATE CHECK (only if isBill=true):
+      Can you read a purchase date? If yes, is it within the last 30 days from today (June 2026)?
+      If the date is unreadable, set dateReadable=false but don't reject.
+      
+      STEP 4 — LEGITIMACY:
+      Does this look like a real commercial receipt (printed or digital)?
+      Check for: store name, amounts, itemization, formatting.
+      Handwritten notes or screenshots of text are suspicious.
+      
+      Respond ONLY with valid JSON (no markdown):
+      {
+        "isBill": boolean,
+        "productMatch": boolean,
+        "dateReadable": boolean,
+        "withinReturnWindow": boolean,
+        "confidence": number (0-100),
+        "explanation": "string — 1-2 sentences explaining your assessment"
+      }
+    `;
+
+    const response = await callWithRetry(() => ai.models.generateContent({
+      model: GEMINI_MODEL,
+      contents: [
+        {
+          role: 'user',
+          parts: [
+            { text: prompt },
+            {
+              inlineData: {
+                data: base64Image,
+                mimeType: mimeType || 'image/jpeg'
+              }
+            }
+          ]
+        }
+      ],
+      config: {
+        responseMimeType: 'application/json',
+      }
+    }));
+
+    const resultText = response.text;
+    const result = JSON.parse(resultText);
+
+    return {
+      isBill: result.isBill !== false,
+      productMatch: result.productMatch !== false,
+      withinReturnWindow: result.withinReturnWindow !== false,
+      dateReadable: result.dateReadable !== false,
+      confidence: typeof result.confidence === 'number' ? result.confidence : 50,
+      explanation: result.explanation || 'Analyzed by AI Vision.',
+      isValid: result.isBill && (result.productMatch !== false)
+    };
+
+  } catch (error) {
+    console.error('[VisionAI] Error analyzing bill:', error);
+    return null;
+  }
+}
+
+/**
+ * Validates if the uploaded photo matches the customer's stated return reason.
+ * @param {string} base64Image - Base64 encoded image string
+ * @param {string} mimeType - The mime type
+ * @param {string} expectedProduct - The product name
+ * @param {string} reason - The main reason selected from dropdown
+ * @param {string} customReason - Any custom reason text
+ * @param {string} description - Detailed description provided by the user
+ * @returns {Promise<Object|null>} - { match, confidence, explanation }
+ */
+async function validateReason(base64Image, mimeType, expectedProduct, reason, customReason, description) {
+  if (!process.env.GEMINI_API_KEY) {
+    console.warn('[VisionAI] No GEMINI_API_KEY found. Falling back to mock reason validation.');
+    return null;
+  }
+
+  try {
+    const prompt = `
+      You are an expert Amazon Returns Inspector.
+      The customer is returning: "${expectedProduct || 'unknown product'}".
+      
+      Stated Reason: "${reason}"
+      Custom Reason: "${customReason}"
+      Detailed Description: "${description}"
+      
+      Examine the provided image of the returned item.
+      
+      STEP 1: Check if the photo is relevant. Does it show the product or the issue described? If it's a random photo (like a selfie or landscape), it does NOT match.
+      STEP 2: Evaluate if the visual evidence in the photo supports the customer's stated reason and description.
+      - If they claim it's "damaged", can you see damage?
+      - If they claim "wrong item", does it look different from the expected product?
+      - If they claim "doesn't fit" (for clothes), does the photo show the clothing item?
+      
+      Respond ONLY with valid JSON (no markdown):
+      {
+        "match": boolean,
+        "confidence": number (0-100),
+        "explanation": "string — 1-2 professional sentences explaining if the photo supports the reason and why."
+      }
+    `;
+
+    const response = await callWithRetry(() => ai.models.generateContent({
+      model: GEMINI_MODEL,
+      contents: [
+        {
+          role: 'user',
+          parts: [
+            { text: prompt },
+            {
+              inlineData: {
+                data: base64Image,
+                mimeType: mimeType || 'image/jpeg'
+              }
+            }
+          ]
+        }
+      ],
+      config: {
+        responseMimeType: 'application/json',
+      }
+    }));
+
+    const resultText = response.text;
+    const result = JSON.parse(resultText);
+
+    return {
+      match: result.match !== false,
+      confidence: typeof result.confidence === 'number' ? result.confidence : 50,
+      explanation: result.explanation || 'Analyzed by AI Vision.'
+    };
+
+  } catch (error) {
+    console.error('[VisionAI] Error validating reason:', error);
+    return null;
+  }
+}
+
+module.exports = { analyzeImage, analyzeBill, validateReason };
