@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amazon Checkout</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy-900: #0F1923;
+      --navy-800: #1A2734;
+      --navy-700: #232F3E;
+      --orange-500: #FF9900;
+      --white: #FFFFFF;
+      --gray-100: #F5F5F5;
+      --gray-200: #EAEDED;
+      --gray-300: #D5D9D9;
+      --gray-800: #0F1111;
+      --green-600: #007600;
+      --radius-sm: 8px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--gray-200);
+      color: var(--gray-800);
+    }
+
+    /* ─── HEADER ─── */
+    .header {
+      background: linear-gradient(180deg, var(--navy-900) 0%, var(--navy-700) 100%);
+      padding: 0 32px;
+    }
+
+    .header__inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      height: 64px;
+      gap: 32px;
+    }
+
+    .header__nav {
+      display: flex;
+      gap: 4px;
+      margin-left: auto;
+    }
+
+    .header__nav a {
+      color: rgba(255,255,255,0.75);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 8px 14px;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+
+    .header__nav a:hover {
+      color: var(--white);
+      background: rgba(255,255,255,0.08);
+    }
+
+    /* ─── CHECKOUT LAYOUT ─── */
+    .checkout-container {
+      max-width: 1000px;
+      margin: 32px auto;
+      display: flex;
+      gap: 24px;
+      padding: 0 32px;
+      align-items: flex-start;
+    }
+
+    .checkout-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .section-box {
+      background: var(--white);
+      padding: 24px;
+      border-radius: var(--radius-sm);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    h2 {
+      font-size: 22px;
+      margin-bottom: 16px;
+    }
+
+    .checkout-sidebar {
+      width: 320px;
+      background: var(--white);
+      padding: 24px;
+      border-radius: var(--radius-sm);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      position: sticky;
+      top: 24px;
+    }
+
+    /* ─── ITEMS LIST ─── */
+    .item-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .item-row {
+      display: flex;
+      gap: 16px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--gray-200);
+    }
+    .item-row:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .item-img {
+      width: 80px;
+      height: 80px;
+      object-fit: contain;
+      background: #f8f8f8;
+      border-radius: 4px;
+    }
+
+    .item-details { flex: 1; }
+    .item-name { font-weight: 500; margin-bottom: 4px; font-size: 15px;}
+    .item-price { font-weight: 700; color: #B12704; }
+
+    /* ─── CREDITS SECTION ─── */
+    .credits-box {
+      background: #f4fbf7;
+      border: 1px solid #a3d9b8;
+      padding: 16px;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .credits-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      color: var(--green-600);
+    }
+
+    .credits-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ─── SUMMARY ─── */
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      font-size: 15px;
+    }
+    .summary-total {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 700;
+      font-size: 20px;
+      color: #B12704;
+      border-top: 1px solid var(--gray-200);
+      padding-top: 16px;
+      margin-top: 16px;
+      margin-bottom: 24px;
+    }
+
+    .place-order-btn {
+      width: 100%;
+      background: #FFD814;
+      border: none;
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 2px 5px rgba(213,217,217,0.5);
+    }
+
+    .place-order-btn:hover {
+      background: #F7CA00;
+    }
+    .place-order-btn:disabled {
+      background: #ddd;
+      cursor: not-allowed;
+    }
+
+    .loader {
+      text-align: center;
+      padding: 40px;
+      font-size: 18px;
+      color: var(--gray-600);
+    }
+    
+    #success-screen {
+        display: none;
+        text-align: center;
+        padding: 48px;
+        background: #fff;
+        border-radius: 8px;
+        max-width: 600px;
+        margin: 40px auto;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header__inner">
+      <a href="/" class="header__logo" style="text-decoration: none; display: flex; align-items: baseline; gap: 6px;">
+        <div style="position: relative; display: inline-block;">
+          <span style="font-size: 24px; font-weight: 800; color: #FFF; letter-spacing: -0.5px; line-height: 1;">amazon</span>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 30" width="56" height="16" style="position: absolute; bottom: -8px; left: 2px;">
+            <path fill="#FF9900" d="M94.2,20.5c-8.5,6.1-20.7,8.8-32.6,8.8c-12.6,0-23.4-3.1-31.4-7.6c-1.1-0.6-0.9-1.9,0.5-1.4 c10.4,3.3,21.7,4.9,33.2,4.9c11.2,0,21.7-2,30.1-5.8C95.4,18.7,96.1,19.5,94.2,20.5z"/>
+            <path fill="#FF9900" d="M94.9,14.7c-0.6-1-2-0.7-2.4,0.5c-0.9,2.4-2.8,7.3-9.6,9.3c0.5,0.4,3.3,2.4,3.8,2.8 c3.9,0.1,8.1-2.4,10.5-8.2C97.6,18.2,97.3,15.8,94.9,14.7z"/>
+          </svg>
+        </div>
+      </a>
+      <span style="color: #fff; font-size: 20px; font-weight: 500;">Checkout</span>
+    </div>
+  </header>
+
+  <div id="loading" class="loader">Loading checkout...</div>
+
+  <div id="checkout-container" class="checkout-container" style="display: none;">
+    <div class="checkout-main">
+      
+      <div class="section-box">
+        <h2>1. Shipping Address</h2>
+        <p><strong>Priya Sharma</strong></p>
+        <p>123 Palm Grove Road</p>
+        <p>Indiranagar, Bangalore 560038</p>
+        <p>India</p>
+      </div>
+
+      <div class="section-box">
+        <h2>2. Review Items and Delivery</h2>
+        <div id="items-list" class="item-list"></div>
+      </div>
+
+      <div class="section-box">
+        <h2>3. Payment & Green Credits</h2>
+        <div class="credits-box">
+          <div class="credits-header">
+            <span>💚</span>
+            <span>You have <strong id="user-credits-val">0</strong> Green Credits</span>
+          </div>
+          <p style="font-size: 13px; color: #555;">Apply your earned credits from recycling and eco-returns to get a discount (1 Credit = ₹1).</p>
+          <div class="credits-toggle">
+            <input type="checkbox" id="use-credits-cb" onchange="updateTotals()">
+            <label for="use-credits-cb" style="font-weight: 500;">Use my credits</label>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="checkout-sidebar">
+      <button class="place-order-btn" id="place-order-btn" onclick="placeOrder()">Place your order</button>
+      <p style="font-size: 12px; text-align: center; color: #555; margin-top: 8px;">By placing your order, you agree to Amazon's conditions of use.</p>
+      
+      <h3 style="margin-top: 24px; margin-bottom: 16px;">Order Summary</h3>
+      
+      <div class="summary-row">
+        <span>Items:</span>
+        <span id="summ-items">₹0</span>
+      </div>
+      <div class="summary-row">
+        <span>Delivery:</span>
+        <span>₹0</span>
+      </div>
+      <div class="summary-row" id="summ-discount-row" style="color: var(--green-600); display: none;">
+        <span>Credits Applied:</span>
+        <span id="summ-discount">-₹0</span>
+      </div>
+      
+      <div class="summary-total">
+        <span>Order Total:</span>
+        <span id="summ-total">₹0</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="success-screen">
+    <div style="font-size: 48px; margin-bottom: 16px;">🎉</div>
+    <h1 style="color: #007600; margin-bottom: 16px;">Order placed, thanks!</h1>
+    <p style="font-size: 18px; color: #555; margin-bottom: 32px;">Confirmation will be sent to your registered email.</p>
+    <a href="/orders.html" style="background: #FFD814; padding: 12px 24px; text-decoration: none; color: #111; border-radius: 8px; font-weight: 600;">View Your Orders</a>
+  </div>
+
+  <script>
+    let cart = [];
+    let userCredits = 0;
+    let subtotal = 0;
+    const currentUser = 'user_001'; // Mock logged-in user
+    
+    async function initCheckout() {
+      cart = JSON.parse(localStorage.getItem('cart')) || [];
+      
+      if (cart.length === 0) {
+        document.getElementById('loading').textContent = 'Your cart is empty. Please add items to checkout.';
+        return;
+      }
+      
+      try {
+        const res = await fetch(`/api/user/${currentUser}`);
+        if (!res.ok) throw new Error('User fetch failed');
+        const user = await res.json();
+        userCredits = user.green_credits || 0;
+        
+        document.getElementById('user-credits-val').textContent = userCredits.toLocaleString();
+        
+        renderItems();
+        updateTotals();
+        
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('checkout-container').style.display = 'flex';
+      } catch (err) {
+        console.error(err);
+        document.getElementById('loading').textContent = 'Error loading checkout. Please try again.';
+      }
+    }
+    
+    function renderItems() {
+      const list = document.getElementById('items-list');
+      let html = '';
+      subtotal = 0;
+      
+      cart.forEach(item => {
+        const price = item.resale_price || item.price || 0;
+        subtotal += price;
+        const img = item.image_url || '';
+        
+        html += `
+          <div class="item-row">
+            ${img ? `<img src="${img}" class="item-img">` : `<div class="item-img" style="display:flex; align-items:center; justify-content:center; font-size:32px;">📦</div>`}
+            <div class="item-details">
+              <div class="item-name">${item.name}</div>
+              <div class="item-price">₹${price.toLocaleString('en-IN')}</div>
+              <div style="font-size: 13px; color: #007600; margin-top: 4px;">In Stock</div>
+            </div>
+          </div>
+        `;
+      });
+      
+      list.innerHTML = html;
+      document.getElementById('summ-items').textContent = `₹${subtotal.toLocaleString('en-IN')}`;
+    }
+    
+    function updateTotals() {
+      const useCredits = document.getElementById('use-credits-cb').checked;
+      let discount = 0;
+      
+      if (useCredits) {
+        discount = Math.min(subtotal, userCredits);
+        document.getElementById('summ-discount-row').style.display = 'flex';
+        document.getElementById('summ-discount').textContent = `-₹${discount.toLocaleString('en-IN')}`;
+      } else {
+        document.getElementById('summ-discount-row').style.display = 'none';
+      }
+      
+      const total = subtotal - discount;
+      document.getElementById('summ-total').textContent = `₹${total.toLocaleString('en-IN')}`;
+      
+      // Save exact used credits globally for place order API
+      window.creditsApplied = discount;
+    }
+    
+    async function placeOrder() {
+      const btn = document.getElementById('place-order-btn');
+      btn.textContent = 'Processing...';
+      btn.disabled = true;
+      
+      try {
+        const res = await fetch('/api/checkout-cart', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: currentUser,
+            items: cart,
+            credits_used: window.creditsApplied || 0
+          })
+        });
+        
+        if (!res.ok) throw new Error('Checkout failed');
+        
+        // Success
+        localStorage.removeItem('cart');
+        window.dispatchEvent(new Event('storage')); // Update cart badge everywhere
+        
+        document.getElementById('checkout-container').style.display = 'none';
+        document.getElementById('success-screen').style.display = 'block';
+        
+      } catch (err) {
+        console.error(err);
+        alert('Failed to place order. Please try again.');
+        btn.textContent = 'Place your order';
+        btn.disabled = false;
+      }
+    }
+    
+    document.addEventListener('DOMContentLoaded', initCheckout);
+  </script>
+</body>
+</html>

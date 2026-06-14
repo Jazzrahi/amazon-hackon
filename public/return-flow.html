@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Smart Return — AI-Powered Return Processing</title>
+  <meta name="description" content="Amazon Smart Return: AI-powered analysis finds the best outcome for your return — keep it, list it, or send it back.">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -19,7 +20,6 @@
       --blue-500: #1A73E8;
       --blue-bg: rgba(26,115,232,0.08);
       --purple-500: #7B61FF;
-      --purple-bg: rgba(123,97,255,0.08);
       --red-500: #E53935;
       --white: #FFF;
       --gray-50: #FAFAFA;
@@ -29,7 +29,7 @@
       --gray-400: #999;
       --gray-600: #565959;
       --gray-800: #0F1111;
-      --radius: 12px;
+      --radius: 14px;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -42,6 +42,7 @@
       -webkit-font-smoothing: antialiased;
     }
 
+    /* ─── HEADER ─── */
     .header {
       background: linear-gradient(180deg, var(--navy-900), var(--navy-700));
       padding: 0 24px;
@@ -82,10 +83,11 @@
 
     .header__title span { color: var(--orange-500); }
 
+    /* ─── CONTAINER ─── */
     .container {
       max-width: 560px;
       margin: 0 auto;
-      padding: 24px 20px 48px;
+      padding: 24px 20px 60px;
     }
 
     /* ─── PROGRESS BAR ─── */
@@ -113,7 +115,7 @@
       border: 1px solid var(--gray-200);
       border-radius: var(--radius);
       padding: 32px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
       animation: fadeIn 0.35s ease-out;
     }
 
@@ -181,7 +183,7 @@
     .btn {
       display: block;
       width: 100%;
-      padding: 14px 20px;
+      padding: 15px 20px;
       border: none;
       border-radius: 10px;
       font-size: 14px;
@@ -214,6 +216,15 @@
       color: var(--white);
     }
 
+    .btn--green:hover { filter: brightness(1.05); }
+
+    .btn--blue {
+      background: linear-gradient(135deg, #1A73E8, #4A90D9);
+      color: var(--white);
+    }
+
+    .btn--blue:hover { filter: brightness(1.05); }
+
     .btn--outline {
       background: var(--white);
       color: var(--gray-600);
@@ -224,10 +235,7 @@
     .btn--outline:hover { background: var(--gray-50); }
 
     /* ─── AI ANALYSIS ─── */
-    .analysis-steps {
-      list-style: none;
-      margin-bottom: 24px;
-    }
+    .analysis-steps { list-style: none; margin-bottom: 24px; }
 
     .analysis-step {
       display: flex;
@@ -242,14 +250,8 @@
     }
 
     .analysis-step:last-child { border-bottom: none; }
-
-    .analysis-step.active {
-      color: var(--navy-700);
-    }
-
-    .analysis-step.done {
-      color: var(--green-600);
-    }
+    .analysis-step.active { color: var(--navy-700); }
+    .analysis-step.done { color: var(--green-600); }
 
     .analysis-step__icon {
       width: 28px;
@@ -325,11 +327,7 @@
     .grade-badge--b { background: linear-gradient(135deg, #D4A017, #E8B830); }
     .grade-badge--c { background: linear-gradient(135deg, #E07020, #F08838); }
 
-    .grade-confidence {
-      font-size: 12px;
-      color: var(--gray-400);
-      font-weight: 600;
-    }
+    .grade-confidence { font-size: 12px; color: var(--gray-400); font-weight: 600; }
 
     .grade-explain {
       font-size: 13px;
@@ -339,102 +337,204 @@
       line-height: 1.5;
     }
 
-    /* ─── RESULT CARDS ─── */
-    .result-card {
-      display: none;
-      animation: slideUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    /* ─── QUALITY SCORE BAR ─── */
+    .quality-bar-wrap {
+      margin: 14px 0 4px;
     }
 
-    .result-card.visible { display: block; }
+    .quality-bar-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--gray-600);
+      margin-bottom: 6px;
+    }
+
+    .quality-bar {
+      width: 100%;
+      height: 8px;
+      background: var(--gray-200);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .quality-bar__fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 1s cubic-bezier(0.22, 1, 0.36, 1);
+      width: 0%;
+    }
+
+    .quality-bar__fill--high   { background: linear-gradient(90deg, #00A86B, #2ED889); }
+    .quality-bar__fill--mid    { background: linear-gradient(90deg, #D4A017, #FFD814); }
+    .quality-bar__fill--low    { background: linear-gradient(90deg, #E07020, #F08838); }
+
+    /* ─── RESULT SECTION ─── */
+    .result-section { display: none; }
+    .result-section.visible { display: block; animation: slideUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 
     @keyframes slideUp {
       from { opacity: 0; transform: translateY(24px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
-    .result-header {
-      text-align: center;
-      padding: 28px 20px;
-      border-radius: var(--radius) var(--radius) 0 0;
-      margin: -32px -32px 24px;
+    /* ─── TIER CARD ─── */
+    .tier-card {
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
     }
 
-    .result-header--green { background: linear-gradient(135deg, #00A86B, #0D7C5A); }
-    .result-header--blue { background: linear-gradient(135deg, #1A73E8, #4A90D9); }
-    .result-header--purple { background: linear-gradient(135deg, #7B61FF, #9B85FF); }
-    .result-header--orange { background: linear-gradient(135deg, #E07020, #F09050); }
-    .result-header--teal { background: linear-gradient(135deg, #009688, #26A69A); }
-    .result-header--navy { background: linear-gradient(135deg, var(--navy-900), var(--navy-600)); }
-    .result-header--red { background: linear-gradient(135deg, #E53935, #B71C1C); }
+    .tier-header {
+      padding: 24px 24px 20px;
+      text-align: center;
+    }
 
-    .result-header__icon { font-size: 44px; margin-bottom: 10px; }
+    .tier-header--tier1 { background: linear-gradient(135deg, #00A86B 0%, #0D7C5A 100%); }
+    .tier-header--tier2 { background: linear-gradient(135deg, #1A73E8 0%, #0D4EA8 100%); }
+    .tier-header--tier3 { background: linear-gradient(135deg, #37475A 0%, #0F1923 100%); }
+    .tier-header--fraud { background: linear-gradient(135deg, #E53935 0%, #B71C1C 100%); }
 
-    .result-header__title {
+    .tier-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255,255,255,0.2);
+      border: 1px solid rgba(255,255,255,0.3);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 20px;
+      margin-bottom: 10px;
+    }
+
+    .tier-header__icon { font-size: 42px; margin-bottom: 8px; display: block; }
+
+    .tier-header__title {
       font-size: 22px;
       font-weight: 800;
       color: var(--white);
+      margin-bottom: 5px;
+    }
+
+    .tier-header__subtitle {
+      font-size: 13px;
+      color: rgba(255,255,255,0.82);
+    }
+
+    .tier-body {
+      background: var(--white);
+      padding: 24px;
+    }
+
+    /* ─── BIG REFUND DISPLAY ─── */
+    .refund-display {
+      text-align: center;
+      padding: 20px 0 14px;
+    }
+
+    .refund-display__label {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--gray-400);
       margin-bottom: 6px;
     }
 
-    .result-header__subtitle {
-      font-size: 13px;
-      color: rgba(255,255,255,0.8);
-    }
-
-    .result-body { padding: 0 0 8px; }
-
-    .result-highlight {
-      text-align: center;
-      font-size: 32px;
+    .refund-display__amount {
+      font-size: 44px;
       font-weight: 900;
       color: var(--green-500);
-      margin-bottom: 8px;
+      line-height: 1;
+      margin-bottom: 4px;
     }
 
-    .result-detail {
-      font-size: 14px;
+    .refund-display__sub {
+      font-size: 13px;
       color: var(--gray-600);
-      text-align: center;
-      line-height: 1.6;
-      margin-bottom: 24px;
     }
 
-    .result-info-box {
+    /* ─── INFO BOX ─── */
+    .info-box {
       background: var(--gray-50);
       border: 1px solid var(--gray-200);
       border-radius: 10px;
-      padding: 16px;
-      margin-bottom: 20px;
+      padding: 14px 16px;
+      margin: 16px 0;
     }
 
-    .result-info-row {
+    .info-row {
       display: flex;
       justify-content: space-between;
+      align-items: center;
       padding: 8px 0;
       font-size: 13px;
     }
 
-    .result-info-row:not(:last-child) { border-bottom: 1px solid var(--gray-200); }
+    .info-row:not(:last-child) { border-bottom: 1px solid var(--gray-200); }
+    .info-row__label { color: var(--gray-600); }
+    .info-row__value { font-weight: 700; color: var(--navy-700); }
 
-    .result-info-label { color: var(--gray-600); }
-    .result-info-value { font-weight: 700; color: var(--navy-700); }
-
-    .result-eco-box {
+    /* ─── ECO BOX ─── */
+    .eco-box {
       display: flex;
-      align-items: center;
-      gap: 10px;
+      align-items: flex-start;
+      gap: 12px;
       background: var(--green-bg);
-      border: 1px solid rgba(0,168,107,0.15);
+      border: 1px solid rgba(0,168,107,0.18);
       border-radius: 10px;
       padding: 14px 16px;
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--green-600);
-      margin-bottom: 20px;
+      margin: 16px 0;
     }
 
-    .result-eco-box__icon { font-size: 18px; }
+    .eco-box__icon { font-size: 22px; flex-shrink: 0; margin-top: 1px; }
 
+    .eco-box__text { font-size: 13px; font-weight: 600; color: var(--green-600); line-height: 1.5; }
+    .eco-box__sub  { font-size: 12px; font-weight: 400; color: var(--green-600); opacity: 0.8; }
+
+    /* ─── AI VERIFIED BADGE ─── */
+    .ai-verified {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: linear-gradient(135deg, rgba(26,115,232,0.1), rgba(123,97,255,0.1));
+      border: 1px solid rgba(26,115,232,0.2);
+      border-radius: 20px;
+      padding: 5px 12px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--blue-500);
+      letter-spacing: 0.04em;
+      margin-bottom: 16px;
+    }
+
+    /* ─── SECONDARY OPTIONS ─── */
+    .secondary-opts {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--gray-200);
+    }
+
+    .secondary-opts__label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--gray-400);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    /* ─── FRAUD CARD ─── */
+    .fraud-detail { font-size: 14px; color: var(--gray-600); line-height: 1.6; margin-bottom: 20px; text-align: center; }
+
+    /* ─── HIDDEN ─── */
     .hidden { display: none !important; }
   </style>
 </head>
@@ -454,13 +554,29 @@
       <div class="progress__step active" id="prog-1"></div>
       <div class="progress__step" id="prog-2"></div>
       <div class="progress__step" id="prog-3"></div>
+      <div class="progress__step" id="prog-4"></div>
     </div>
 
-    <!-- ═══ STEP 1: UPLOAD ═══ -->
-    <div id="step-upload" class="step-card">
+    <!-- ═══ STEP 1: UPLOAD BILL ═══ -->
+    <div id="step-upload-bill" class="step-card">
+      <div class="step-card__icon">🧾</div>
+      <h2 class="step-card__title">Upload Purchase Bill</h2>
+      <p class="step-card__desc">Please upload the original bill or receipt. Our AI will verify the product and return validity period before proceeding.</p>
+
+      <div class="upload-area" id="upload-area-bill">
+        <input type="file" id="file-input-bill" accept="image/*" capture="environment" style="display: none;">
+        <div class="upload-area__icon" id="upload-icon-bill">📄</div>
+        <div class="upload-area__text" id="upload-text-bill">Tap to capture or upload bill photo</div>
+      </div>
+
+      <button id="submit-btn-bill" class="btn btn--primary" disabled>Verify Bill</button>
+    </div>
+
+    <!-- ═══ STEP 2: UPLOAD PRODUCT ═══ -->
+    <div id="step-upload-product" class="step-card hidden">
       <div class="step-card__icon">📸</div>
       <h2 class="step-card__title">Upload Item Photo</h2>
-      <p class="step-card__desc">Take a quick photo of your item so our AI can assess its condition and find the best sustainable option for you.</p>
+      <p class="step-card__desc">Take a clear photo of your item. Our AI will assess its condition and automatically find the <strong>best deal</strong> for you.</p>
 
       <div class="upload-area" id="upload-area">
         <input type="file" id="file-input" accept="image/*" capture="environment" style="display: none;">
@@ -468,14 +584,14 @@
         <div class="upload-area__text" id="upload-text">Tap to capture or upload photo</div>
       </div>
 
-      <button id="submit-btn" class="btn btn--primary" disabled>Submit for AI Analysis</button>
+      <button id="submit-btn" class="btn btn--primary" disabled>Analyze with AI →</button>
     </div>
 
-    <!-- ═══ STEP 2: AI ANALYSIS ═══ -->
+    <!-- ═══ STEP 3: AI ANALYSIS ═══ -->
     <div id="step-analysis" class="step-card hidden">
       <div class="step-card__icon">🤖</div>
       <h2 class="step-card__title">AI Analysis in Progress</h2>
-      <p class="step-card__desc">Our AI is inspecting your item and calculating the most sustainable return option.</p>
+      <p class="step-card__desc">Our AI is inspecting your item and finding the most profitable outcome for everyone.</p>
 
       <ul class="analysis-steps">
         <li class="analysis-step" id="as-1">
@@ -484,19 +600,19 @@
         </li>
         <li class="analysis-step" id="as-2">
           <span class="analysis-step__icon">🔍</span>
-          <span>Analyzing surface condition & defects…</span>
+          <span>Analyzing surface condition &amp; defects…</span>
         </li>
         <li class="analysis-step" id="as-3">
           <span class="analysis-step__icon">🧪</span>
-          <span>Running quality grading model…</span>
+          <span>Running quality scoring model (0–100)…</span>
         </li>
         <li class="analysis-step" id="as-4">
-          <span class="analysis-step__icon">📊</span>
-          <span>Checking regional demand & logistics…</span>
+          <span class="analysis-step__icon">🌱</span>
+          <span>Calculating carbon footprint savings…</span>
         </li>
         <li class="analysis-step" id="as-5">
-          <span class="analysis-step__icon">🌱</span>
-          <span>Calculating sustainability impact…</span>
+          <span class="analysis-step__icon">💡</span>
+          <span>Generating your best incentive offer…</span>
         </li>
       </ul>
 
@@ -505,139 +621,119 @@
       </div>
     </div>
 
-    <!-- ═══ STEP 3: RESULT ═══ -->
-    <div id="step-result" class="step-card hidden">
+    <!-- ═══ STEP 4: RESULT ═══ -->
+    <div id="step-result" class="hidden">
 
-      <!-- Grade Result (always shown first) -->
+      <!-- Grade display (always shown) -->
       <div class="grade-result" id="grade-display"></div>
 
-      <!-- Green Credit -->
-      <div id="result-green_credit" class="result-card">
-        <div class="result-header result-header--green">
-          <div class="result-header__icon">🌱</div>
-          <h2 class="result-header__title">Keep the Item!</h2>
-          <p class="result-header__subtitle">Save a reverse-shipping trip and earn Green Credits</p>
-        </div>
-        <div class="result-body">
-          <div class="result-highlight" id="gc-amount">₹0</div>
-          <p class="result-detail">We'll credit this amount to your Amazon Pay balance as a <strong>Green Credit</strong> for helping reduce carbon emissions.</p>
-          <div class="result-info-box" id="gc-info"></div>
-          <div class="result-eco-box">
-            <span class="result-eco-box__icon">🌍</span>
-            <span id="gc-eco">Keeping this item saves shipping emissions</span>
+      <!-- ── TIER 1: Keep the Item ── -->
+      <div id="result-keep_item" class="result-section">
+        <div class="tier-card">
+          <div class="tier-header tier-header--tier1">
+            <div class="tier-badge">🏆 Best Deal — Recommended</div>
+            <span class="tier-header__icon">🏠</span>
+            <h2 class="tier-header__title">Keep &amp; Get Money Back</h2>
+            <p class="tier-header__subtitle">Your item is in great shape — no need to send it back!</p>
           </div>
-          <button class="btn btn--green" onclick="acceptGreenCredit()">Accept Green Credit</button>
-          <button class="btn btn--outline" onclick="location.href='orders.html'">No thanks, standard return</button>
-        </div>
-      </div>
+          <div class="tier-body">
+            <div class="ai-verified">✦ AI Verified · Quality Score <span id="keep-quality-score">—</span>/100</div>
+            <div class="refund-display">
+              <div class="refund-display__label">Instant Partial Refund</div>
+              <div class="refund-display__amount" id="keep-amount">₹0</div>
+              <div class="refund-display__sub" id="keep-amount-sub">credited to your Amazon Pay balance</div>
+            </div>
+            <div class="info-box" id="keep-info"></div>
+            <div class="eco-box">
+              <span class="eco-box__icon">🌍</span>
+              <div>
+                <div class="eco-box__text" id="keep-eco-text">Keeping this item saves shipping emissions</div>
+                <div class="eco-box__sub">You also save time — no packing, no pickup, no wait!</div>
+              </div>
+            </div>
+            <button class="btn btn--green" id="keep-accept-btn" onclick="acceptKeepItem()">✓ Accept Refund &amp; Keep Item</button>
 
-      <!-- P2P Resale -->
-      <div id="result-p2p_resale" class="result-card">
-        <div class="result-header result-header--blue">
-          <div class="result-header__icon">🤝</div>
-          <h2 class="result-header__title">List on Local Resale</h2>
-          <p class="result-header__subtitle">High demand detected in your area!</p>
-        </div>
-        <div class="result-body">
-          <p class="result-detail">Your item is in great condition. List it on <strong>Amazon Second Life</strong> and we'll connect you with a buyer in your city.</p>
-          <div class="result-info-box" id="p2p-info"></div>
-          <div class="result-eco-box">
-            <span class="result-eco-box__icon">♻️</span>
-            <span id="p2p-eco">Reselling keeps this product out of landfill</span>
+            <div class="secondary-opts">
+              <div class="secondary-opts__label">Other options</div>
+              <button class="btn btn--outline" id="keep-to-secondlife-btn" onclick="showSecondLifeFromKeep()">List on Second Life instead (100% refund when sold)</button>
+              <button class="btn btn--outline" style="margin-top:8px" onclick="location.href='orders.html'">Standard Return</button>
+            </div>
           </div>
-          <button class="btn btn--primary" onclick="listForResale()">List on Second Life</button>
-          <button class="btn btn--outline" onclick="location.href='orders.html'">Standard return instead</button>
         </div>
       </div>
 
-      <!-- Recycle -->
-      <div id="result-recycle" class="result-card">
-        <div class="result-header result-header--teal">
-          <div class="result-header__icon">♻️</div>
-          <h2 class="result-header__title">Responsible E-Waste Recycling</h2>
-          <p class="result-header__subtitle">This electronic item will be safely recycled</p>
-        </div>
-        <div class="result-body">
-          <p class="result-detail">We'll partner with a certified e-waste recycler to responsibly process this item. You'll earn <strong>30 Green Credits</strong> for keeping it out of landfill.</p>
-          <div class="result-info-box" id="recycle-info"></div>
-          <div class="result-eco-box">
-            <span class="result-eco-box__icon">🔋</span>
-            <span id="recycle-eco">Prevents hazardous e-waste from reaching landfill</span>
+      <!-- ── TIER 2: Second Life ── -->
+      <div id="result-second_life" class="result-section">
+        <div class="tier-card">
+          <div class="tier-header tier-header--tier2">
+            <div class="tier-badge">♻️ Eco Choice</div>
+            <span class="tier-header__icon">🤝</span>
+            <h2 class="tier-header__title">List on Second Life</h2>
+            <p class="tier-header__subtitle">Get 100% refund when your item sells — and save the planet!</p>
           </div>
-          <button class="btn btn--green" onclick="acceptGreenCredit()">Confirm Recycling (+30 Credits)</button>
-          <button class="btn btn--outline" onclick="location.href='orders.html'">Standard return instead</button>
-        </div>
-      </div>
+          <div class="tier-body">
+            <div class="ai-verified">✦ AI Verified · Quality Score <span id="sl-quality-score">—</span>/100</div>
+            <p style="font-size:14px;color:var(--gray-600);text-align:center;margin-bottom:16px;line-height:1.6;">
+              Your item is in <strong>good condition</strong> and can find a new home on <strong>Amazon Second Life</strong>. 
+              You'll receive a <strong>full refund</strong> once it sells.
+            </p>
+            <div class="info-box" id="sl-info"></div>
+            <div class="eco-box">
+              <span class="eco-box__icon">♻️</span>
+              <div>
+                <div class="eco-box__text" id="sl-eco-text">Reselling saves CO₂ vs manufacturing new</div>
+                <div class="eco-box__sub">Keeps this product out of landfill and in someone's hands</div>
+              </div>
+            </div>
+            <button class="btn btn--blue" onclick="listForResale()">🤝 List on Second Life (Full Refund)</button>
 
-      <!-- Donate -->
-      <div id="result-donate" class="result-card">
-        <div class="result-header result-header--purple">
-          <div class="result-header__icon">💜</div>
-          <h2 class="result-header__title">Donate to Someone in Need</h2>
-          <p class="result-header__subtitle">This item can brighten someone's day!</p>
-        </div>
-        <div class="result-body">
-          <p class="result-detail">We'll donate this item to <strong>Goonj Foundation</strong>, a verified charity partner. You'll earn <strong>50 Green Credits</strong> for your kindness.</p>
-          <div class="result-info-box" id="donate-info"></div>
-          <div class="result-eco-box">
-            <span class="result-eco-box__icon">🤲</span>
-            <span id="donate-eco">Your donation helps reduce textile waste</span>
+            <div class="secondary-opts">
+              <div class="secondary-opts__label">Other options</div>
+              <button class="btn btn--outline" onclick="location.href='orders.html'">Standard Return instead</button>
+            </div>
           </div>
-          <button class="btn btn--green" onclick="acceptGreenCredit()">Confirm Donation (+50 Credits)</button>
-          <button class="btn btn--outline" onclick="location.href='orders.html'">Standard return instead</button>
         </div>
       </div>
 
-      <!-- Exchange -->
-      <div id="result-exchange" class="result-card">
-        <div class="result-header result-header--orange">
-          <div class="result-header__icon">🔄</div>
-          <h2 class="result-header__title">Wrong Size? Exchange It!</h2>
-          <p class="result-header__subtitle">We detected a sizing issue — let's fix it</p>
-        </div>
-        <div class="result-body">
-          <p class="result-detail">Our AI detected this brand has a high return rate for sizing. <strong>Exchange for the right size</strong> and we'll ship it directly — no return needed!</p>
-          <div class="result-info-box" id="exchange-info"></div>
-          <div class="result-eco-box">
-            <span class="result-eco-box__icon">📦</span>
-            <span>Direct exchange saves 2 shipping trips vs return + re-order</span>
+      <!-- ── TIER 3: Standard Return ── -->
+      <div id="result-standard_return" class="result-section">
+        <div class="tier-card">
+          <div class="tier-header tier-header--tier3">
+            <span class="tier-header__icon">📦</span>
+            <h2 class="tier-header__title">Standard Return</h2>
+            <p class="tier-header__subtitle">Your return label has been generated</p>
           </div>
-          <button class="btn btn--primary" onclick="location.href='orders.html?status=credit_accepted'">Exchange for Free</button>
-          <button class="btn btn--outline" onclick="location.href='orders.html'">Standard return instead</button>
+          <div class="tier-body">
+            <div class="ai-verified" style="border-color:rgba(150,150,150,0.3);color:var(--gray-600);">⚠ AI Assessed · Quality Score <span id="sr-quality-score">—</span>/100 — Item needs warehouse inspection</div>
+            <p style="font-size:14px;color:var(--gray-600);text-align:center;margin:16px 0;line-height:1.6;">
+              Based on the AI quality assessment, this item requires a standard warehouse inspection. 
+              A prepaid shipping label has been sent to your registered email.
+            </p>
+            <div class="info-box" id="standard-info"></div>
+            <button class="btn btn--primary" onclick="location.href='orders.html'">View Return Instructions</button>
+          </div>
         </div>
       </div>
 
-      <!-- Standard Return -->
-      <div id="result-standard_return" class="result-card">
-        <div class="result-header result-header--navy">
-          <div class="result-header__icon">📦</div>
-          <h2 class="result-header__title">Standard Return</h2>
-          <p class="result-header__subtitle">Your return label has been generated</p>
-        </div>
-        <div class="result-body">
-          <p class="result-detail">A prepaid shipping label has been sent to your email. Pack the item securely and drop it off at your nearest pickup point.</p>
-          <div class="result-info-box" id="standard-info"></div>
-          <button class="btn btn--primary" onclick="location.href='orders.html'">View Return Instructions</button>
-        </div>
-      </div>
-
-      <!-- Fraud Rejected -->
-      <div id="result-fraud_rejected" class="result-card">
-        <div class="result-header result-header--red">
-          <div class="result-header__icon">🛑</div>
-          <h2 class="result-header__title">Return Rejected</h2>
-          <p class="result-header__subtitle">Item Mismatch Detected</p>
-        </div>
-        <div class="result-body">
-          <p class="result-detail">Our AI Vision system detected that the uploaded image does not match the expected product for this return. Standard return processing is suspended.</p>
-          <div class="result-info-box" id="fraud-info"></div>
-          <button class="btn btn--primary" onclick="location.href='orders.html'">Contact Customer Support</button>
+      <!-- ── FRAUD REJECTED ── -->
+      <div id="result-fraud_rejected" class="result-section">
+        <div class="tier-card">
+          <div class="tier-header tier-header--fraud">
+            <span class="tier-header__icon">🛑</span>
+            <h2 class="tier-header__title">Return Rejected</h2>
+            <p class="tier-header__subtitle">Item Mismatch Detected by AI</p>
+          </div>
+          <div class="tier-body">
+            <p class="fraud-detail">Our AI Vision system detected that the uploaded image <strong>does not match</strong> the expected product for this return. Standard return processing has been suspended pending manual review.</p>
+            <div class="info-box" id="fraud-info"></div>
+            <button class="btn btn--primary" onclick="location.href='orders.html'">Contact Customer Support</button>
+          </div>
         </div>
       </div>
 
-    </div>
+    </div><!-- /step-result -->
 
-  </div>
+  </div><!-- /container -->
 
   <script>
     const params = new URLSearchParams(window.location.search);
@@ -647,38 +743,88 @@
     let returnData = null;
 
     // ── Elements ──
-    const uploadArea = document.getElementById('upload-area');
-    const uploadIcon = document.getElementById('upload-icon');
-    const uploadText = document.getElementById('upload-text');
-    const submitBtn = document.getElementById('submit-btn');
-    const stepUpload = document.getElementById('step-upload');
+    const uploadAreaBill = document.getElementById('upload-area-bill');
+    const uploadIconBill = document.getElementById('upload-icon-bill');
+    const uploadTextBill = document.getElementById('upload-text-bill');
+    const submitBtnBill  = document.getElementById('submit-btn-bill');
+    const fileInputBill  = document.getElementById('file-input-bill');
+    const stepUploadBill = document.getElementById('step-upload-bill');
+
+    const uploadArea        = document.getElementById('upload-area');
+    const uploadIcon        = document.getElementById('upload-icon');
+    const uploadText        = document.getElementById('upload-text');
+    const submitBtn         = document.getElementById('submit-btn');
+    const fileInput         = document.getElementById('file-input');
+    const stepUploadProduct = document.getElementById('step-upload-product');
+
     const stepAnalysis = document.getElementById('step-analysis');
-    const stepResult = document.getElementById('step-result');
+    const stepResult   = document.getElementById('step-result');
 
+    let billUploaded = false;
+    let base64Bill   = null;
     let photoUploaded = false;
-    let base64Image = null;
-    let imageMime = null;
+    let base64Image  = null;
+    let imageMime    = null;
 
-    // ── Upload mock ──
-    const fileInput = document.getElementById('file-input');
+    // ── Bill upload ──
+    uploadAreaBill.addEventListener('click', () => { if (!billUploaded) fileInputBill.click(); });
 
-    uploadArea.addEventListener('click', () => {
-      if (photoUploaded) return;
-      fileInput.click();
+    fileInputBill.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files.length > 0) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          base64Bill = reader.result.split(',')[1];
+          uploadAreaBill.classList.add('uploaded');
+          uploadIconBill.textContent = '✅';
+          uploadTextBill.textContent = 'Bill photo ready';
+          billUploaded = true;
+          submitBtnBill.disabled = false;
+        };
+        reader.readAsDataURL(e.target.files[0]);
+      }
     });
+
+    submitBtnBill.addEventListener('click', async () => {
+      if (!billUploaded) return;
+      submitBtnBill.textContent = 'Verifying...';
+      submitBtnBill.disabled = true;
+      try {
+        const res  = await fetch('/api/verify-bill', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image_base64: base64Bill })
+        });
+        const data = await res.json();
+        if (data.isValid) {
+          stepUploadBill.classList.add('hidden');
+          stepUploadProduct.classList.remove('hidden');
+          updateProgress(2);
+        } else {
+          alert('Bill validation failed: ' + data.message);
+          submitBtnBill.textContent = 'Verify Bill';
+          submitBtnBill.disabled = false;
+        }
+      } catch {
+        alert('Error verifying bill.');
+        submitBtnBill.textContent = 'Verify Bill';
+        submitBtnBill.disabled = false;
+      }
+    });
+
+    // ── Product photo ──
+    uploadArea.addEventListener('click', () => { if (!photoUploaded) fileInput.click(); });
 
     fileInput.addEventListener('change', (e) => {
       if (e.target.files && e.target.files.length > 0) {
-        const file = e.target.files[0];
+        const file   = e.target.files[0];
         const reader = new FileReader();
         reader.onloadend = () => {
           const result = reader.result;
-          imageMime = result.split(';')[0].split(':')[1];
-          base64Image = result.split(',')[1];
-          
+          imageMime    = result.split(';')[0].split(':')[1];
+          base64Image  = result.split(',')[1];
           uploadArea.classList.add('uploaded');
           uploadIcon.textContent = '✅';
-          uploadText.textContent = 'Photo ready for AI Analysis';
+          uploadText.textContent = 'Photo ready — AI will score 0–100';
           photoUploaded = true;
           submitBtn.disabled = false;
           submitBtn.textContent = 'Analyze with AI →';
@@ -687,20 +833,18 @@
       }
     });
 
-    // ── Submit ──
+    // ── Submit Product ──
     submitBtn.addEventListener('click', async () => {
       if (!photoUploaded) return;
 
-      // Move to step 2
-      stepUpload.classList.add('hidden');
+      stepUploadProduct.classList.add('hidden');
       stepAnalysis.classList.remove('hidden');
-      updateProgress(2);
+      updateProgress(3);
 
-      // Start API call in parallel with animation
       const payload = { user_id: userId, product_id: productId };
       if (base64Image) {
         payload.image_base64 = base64Image;
-        payload.image_mime = imageMime;
+        payload.image_mime   = imageMime;
       }
 
       const apiPromise = fetch('/api/process-return', {
@@ -709,139 +853,132 @@
         body: JSON.stringify(payload)
       }).then(r => r.json());
 
-      // Run analysis animation
       await runAnalysisAnimation();
 
-      // Wait for API
       try {
         returnData = await apiPromise;
         showResult(returnData);
-      } catch (err) {
+      } catch {
         alert('Error processing return. Please try again.');
         stepAnalysis.classList.add('hidden');
-        stepUpload.classList.remove('hidden');
-        updateProgress(1);
+        stepUploadProduct.classList.remove('hidden');
+        updateProgress(2);
       }
     });
 
     // ── Analysis animation ──
     async function runAnalysisAnimation() {
       const steps = ['as-1', 'as-2', 'as-3', 'as-4', 'as-5'];
-      const bar = document.getElementById('analysis-bar-fill');
-
+      const bar   = document.getElementById('analysis-bar-fill');
       for (let i = 0; i < steps.length; i++) {
         const el = document.getElementById(steps[i]);
         el.classList.add('active');
         bar.style.width = `${((i + 0.5) / steps.length) * 100}%`;
-
         await sleep(600 + Math.random() * 400);
-
         el.classList.remove('active');
         el.classList.add('done');
         bar.style.width = `${((i + 1) / steps.length) * 100}%`;
-
         await sleep(200);
       }
-
       await sleep(400);
     }
 
     function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-    // ── Show result ──
+    // ── Show Result ──
     function showResult(data) {
       stepAnalysis.classList.add('hidden');
       stepResult.classList.remove('hidden');
-      updateProgress(3);
+      updateProgress(4);
 
-      // Show grade
-      const gc = { A: 'a', B: 'b', C: 'c' }[data.grade] || 'b';
-      const gl = { A: 'Like New', B: 'Good Condition', C: 'Fair' }[data.grade] || data.grade;
-      const conf = { A: '97%', B: '89%', C: '74%' }[data.grade] || '85%';
+      // Grade badge
+      const gc  = { A: 'a', B: 'b', C: 'c' }[data.grade] || 'b';
+      const gl  = { A: 'Like New', B: 'Good Condition', C: 'Fair / Worn' }[data.grade] || data.grade;
+      const qs  = data.quality_score || 0;
+      const barClass = qs >= 70 ? 'high' : qs >= 50 ? 'mid' : 'low';
 
       document.getElementById('grade-display').innerHTML = `
         <div class="grade-badge grade-badge--${gc}">✓ Grade ${data.grade} — ${gl}</div>
-        <div class="grade-confidence">AI Confidence: ${conf}</div>
-        <p class="grade-explain">${data.grade_explanation}</p>
+        <div class="grade-confidence" style="margin-bottom:4px">AI Quality Score</div>
+        <div class="quality-bar-wrap">
+          <div class="quality-bar-label"><span>0</span><span id="qs-label">${qs}/100</span></div>
+          <div class="quality-bar"><div class="quality-bar__fill quality-bar__fill--${barClass}" id="qs-bar" style="width:0%"></div></div>
+        </div>
+        <p class="grade-explain" style="margin-top:10px">${data.grade_explanation}</p>
       `;
 
-      // Show decision-specific card
-      const card = document.getElementById(`result-${data.decision}`);
+      // Animate quality bar
+      setTimeout(() => {
+        const bar = document.getElementById('qs-bar');
+        if (bar) bar.style.width = qs + '%';
+      }, 200);
+
+      // Show decision card
+      const decision = data.decision;
+      const card = document.getElementById(`result-${decision}`);
       if (card) {
         card.classList.add('visible');
-        populateResultInfo(data);
+        populateCard(data);
       }
     }
 
-    function populateResultInfo(d) {
-      const name = d.product_name || 'Product';
+    function populateCard(d) {
+      const name  = d.product_name || 'Product';
       const price = d.product_price || 0;
-      const co2 = d.carbon_savings_kg || 0;
+      const co2   = d.carbon_saved_kg || d.carbon_savings_kg || 0;
+      const qs    = d.quality_score || 0;
 
-      if (d.decision === 'green_credit') {
-        document.getElementById('gc-amount').textContent = `₹${d.offer_amount}`;
-        document.getElementById('gc-info').innerHTML = infoRows([
+      if (d.decision === 'keep_item') {
+        document.getElementById('keep-quality-score').textContent = qs;
+        document.getElementById('keep-amount').textContent = `₹${(d.partial_refund_amount || 0).toLocaleString('en-IN')}`;
+        document.getElementById('keep-amount-sub').textContent =
+          `${d.partial_refund_percent || 0}% instant refund — cheaper than a warehouse return!`;
+        document.getElementById('keep-info').innerHTML = infoRows([
           ['Item', name],
           ['Original Price', `₹${price.toLocaleString('en-IN')}`],
-          ['Credit Amount', `₹${d.offer_amount}`],
-          ['Trust Score', `${d.reasoning.match(/Trust score: (\d+)/)?.[1] || '—'}/100`],
+          ['Partial Refund', `₹${(d.partial_refund_amount || 0).toLocaleString('en-IN')} (${d.partial_refund_percent || 0}%)`],
+          ['AI Quality Score', `${qs}/100 — ${d.grade === 'A' ? 'Like New' : 'Good Condition'}`],
         ]);
-        document.getElementById('gc-eco').textContent = `Keeping this item saves ${co2} kg of CO₂ in shipping emissions`;
+        document.getElementById('keep-eco-text').textContent =
+          `Keeping this item saves ~${co2} kg of CO₂ — that's ${Math.round(co2 * 4)} km of car emissions!`;
+
+        // Hide "List on Second Life" button if quality < 50 (Tier 2 not available)
+        if (qs < 50) {
+          const btn = document.getElementById('keep-to-secondlife-btn');
+          if (btn) btn.style.display = 'none';
+        }
       }
 
-      if (d.decision === 'p2p_resale') {
-        document.getElementById('p2p-info').innerHTML = infoRows([
+      if (d.decision === 'second_life') {
+        document.getElementById('sl-quality-score').textContent = qs;
+        document.getElementById('sl-info').innerHTML = infoRows([
           ['Item', name],
-          ['Suggested Resale Price', `₹${d.resale_price.toLocaleString('en-IN')}`],
-          ['Discount from Original', `${d.markdown_percent}% off`],
-          ['Local Demand', d.demand_classification === 'high' ? '🔥 High' : 'Low'],
+          ['Suggested Resale Price', `₹${(d.resale_price || 0).toLocaleString('en-IN')}`],
+          ['Discount from Original', `${d.markdown_percent || 30}% off`],
+          ['You receive', '100% refund on sale'],
+          ['Local Demand', d.demand_classification === 'high' ? '🔥 High' : '📦 Moderate'],
         ]);
-        document.getElementById('p2p-eco').textContent = `Reselling saves ${co2} kg of CO₂ vs manufacturing new`;
-      }
-
-      if (d.decision === 'recycle') {
-        document.getElementById('recycle-info').innerHTML = infoRows([
-          ['Item', name],
-          ['Category', 'Electronics'],
-          ['Recycling Partner', 'EcoCycle India Pvt. Ltd.'],
-          ['Green Credits Earned', '+30 credits'],
-        ]);
-        document.getElementById('recycle-eco').textContent = `Prevents ${co2} kg of e-waste from reaching landfill`;
-      }
-
-      if (d.decision === 'donate') {
-        document.getElementById('donate-info').innerHTML = infoRows([
-          ['Item', name],
-          ['Charity Partner', 'Goonj Foundation'],
-          ['Green Credits Earned', '+50 credits'],
-          ['Tax Benefit', 'Eligible under 80G'],
-        ]);
-        document.getElementById('donate-eco').textContent = `Your donation saves ${co2} kg of CO₂ and helps someone in need`;
-      }
-
-      if (d.decision === 'exchange') {
-        document.getElementById('exchange-info').innerHTML = infoRows([
-          ['Item', name],
-          ['Issue Detected', 'Sizing mismatch (brand runs small)'],
-          ['Exchange Cost', 'FREE'],
-          ['Estimated Delivery', 'Within 3-4 days'],
-        ]);
+        document.getElementById('sl-eco-text').textContent =
+          `Reselling saves ~${co2} kg of CO₂ vs manufacturing new — equivalent to ${Math.round(co2 * 4)} km of driving!`;
       }
 
       if (d.decision === 'standard_return') {
+        document.getElementById('sr-quality-score').textContent = qs;
         document.getElementById('standard-info').innerHTML = infoRows([
           ['Item', name],
-          ['Return Method', 'Prepaid shipping label'],
+          ['AI Quality Score', `${qs}/100 — Requires Inspection`],
+          ['Return Method', 'Prepaid shipping label (sent to email)'],
           ['Pickup', d.pickup?.scheduled ? `${d.pickup.pickup_day}, ${d.pickup.time_window}` : 'Drop-off at nearest point'],
-          ['Refund Timeline', '5-7 business days'],
+          ['Refund Timeline', '5–7 business days'],
         ]);
       }
 
       if (d.decision === 'fraud_rejected') {
         document.getElementById('fraud-info').innerHTML = infoRows([
           ['Expected Item', name],
-          ['Reason', 'Image does not match item'],
-          ['Action Required', 'Manual Inspection Required'],
+          ['AI Quality Score', '0/100 — Item mismatch'],
+          ['Reason', 'Image does not match product'],
+          ['Action Required', 'Manual inspection required'],
           ['Account Status', 'Under Review'],
         ]);
       }
@@ -849,13 +986,16 @@
 
     function infoRows(rows) {
       return rows.map(([l, v]) =>
-        `<div class="result-info-row"><span class="result-info-label">${l}</span><span class="result-info-value">${v}</span></div>`
+        `<div class="info-row"><span class="info-row__label">${l}</span><span class="info-row__value">${v}</span></div>`
       ).join('');
     }
 
     // ── Actions ──
-    async function acceptGreenCredit() {
+    async function acceptKeepItem() {
       if (!returnData) return;
+      const btn = document.getElementById('keep-accept-btn');
+      btn.textContent = 'Processing…';
+      btn.disabled = true;
       try {
         await fetch('/api/accept-green-credit', {
           method: 'POST',
@@ -863,13 +1003,11 @@
           body: JSON.stringify({
             user_id: userId,
             product_id: productId,
-            amount: returnData.offer_amount || 0
+            amount: returnData.partial_refund_amount || 0
           })
         });
-        location.href = 'orders.html?status=credit_accepted';
-      } catch (e) {
-        location.href = 'orders.html?status=credit_accepted';
-      }
+      } catch {}
+      location.href = 'orders.html?status=credit_accepted';
     }
 
     async function listForResale() {
@@ -885,35 +1023,44 @@
             resale_price: returnData.resale_price
           })
         });
-        location.href = 'second-life.html?status=listed';
-      } catch (e) {
-        location.href = 'second-life.html?status=listed';
+      } catch {}
+      location.href = 'second-life.html?status=listed';
+    }
+
+    // From Tier 1 card — "List on Second Life instead"
+    function showSecondLifeFromKeep() {
+      document.getElementById('result-keep_item').classList.remove('visible');
+      const sl = document.getElementById('result-second_life');
+      sl.classList.add('visible');
+      if (returnData) {
+        // Make sure second life card is populated
+        returnData.decision = 'second_life';
+        populateCard(returnData);
       }
     }
 
     // ── Progress bar ──
     function updateProgress(step) {
-      for (let i = 1; i <= 3; i++) {
+      for (let i = 1; i <= 4; i++) {
         const el = document.getElementById(`prog-${i}`);
+        if (!el) continue;
         el.classList.remove('active', 'done');
-        if (i < step) el.classList.add('done');
+        if (i < step)  el.classList.add('done');
         if (i === step) el.classList.add('active');
       }
     }
   </script>
 
-
-<script>
-  function updateGlobalCartCount() {
-    const cc = document.getElementById('nav-cart-count');
-    if (cc) {
-      const cart = JSON.parse(localStorage.getItem('cart')) || [];
-      cc.textContent = cart.length;
+  <script>
+    function updateGlobalCartCount() {
+      const cc = document.getElementById('nav-cart-count');
+      if (cc) {
+        const cart = JSON.parse(localStorage.getItem('cart')) || [];
+        cc.textContent = cart.length;
+      }
     }
-  }
-  document.addEventListener('DOMContentLoaded', updateGlobalCartCount);
-  // Optional: Listen for custom events if added on same page
-  window.addEventListener('storage', updateGlobalCartCount);
-</script>
+    document.addEventListener('DOMContentLoaded', updateGlobalCartCount);
+    window.addEventListener('storage', updateGlobalCartCount);
+  </script>
 </body>
 </html>

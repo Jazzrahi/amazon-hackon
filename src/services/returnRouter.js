@@ -1,93 +1,97 @@
 /**
- * Return Router Service
- * Determines the optimal return path based on trust score, cost analysis, and demand.
+ * Return Router Service — 3-Tier AI-Driven Incentive System
+ *
+ * Tier 1 (quality_score >= 70): Keep the Item  → partial refund + carbon nudge
+ * Tier 2 (quality_score >= 50): Second Life     → 100% refund via marketplace
+ * Tier 3 (quality_score  < 50): Standard Return → only option shown
+ *
+ * Fraud always overrides to fraud_rejected.
  */
 
 /**
- * Routes a return based on priority rules.
- * @param {Object} params
- * @param {number} params.trustScore - Seller's trust score (0-100)
- * @param {number} params.returnShippingCost - Shipping cost in INR
- * @param {number} params.productPrice - Original product price in INR
- * @param {string} params.demandClassification - "high" or "low"
- * @returns {{decision: string, rule: string, trustScore: number, shippingRatio: number, offerAmount: number|null}}
+ * Calculate partial refund percentage based on quality score.
+ * The worse the item, the higher the refund needed to persuade the user to keep it.
+ * Grade A (85-100): ~15% refund  (item is nearly perfect, small incentive)
+ * Grade B (70-84):  ~25-30% refund
+ * @param {number} qualityScore - 0-100
+ * @returns {number} refundPercent (0-100)
  */
-function routeReturn({ trustScore, returnShippingCost, productPrice, demandClassification, grade, category, highReturnRisk }) {
-  const shippingRatio = Math.round((returnShippingCost / productPrice) * 100) / 100;
+function calcPartialRefundPercent(qualityScore) {
+  if (qualityScore >= 85) return 15;
+  if (qualityScore >= 75) return 22;
+  if (qualityScore >= 70) return 30;
+  return 0; // below 70 → not offered
+}
 
-  // Priority 1: Low trust score — short-circuit to standard return
-  if (trustScore < 50) {
+/**
+ * Routes a return based on AI quality score (primary) with fraud override.
+ * @param {Object} params
+ * @param {number} params.qualityScore    - AI quality score 0-100
+ * @param {string} params.grade           - "A", "B", or "C"
+ * @param {number} params.productPrice    - Original product price in INR
+ * @param {number} params.trustScore      - User trust score (0-100); < 40 → standard return
+ * @param {boolean} params.fraudDetected  - Whether AI flagged fraud
+ * @returns {{decision, tier, qualityScore, partialRefundPercent, partialRefundAmount}}
+ */
+function routeReturn({ qualityScore, grade, productPrice, trustScore, fraudDetected }) {
+  // Hard override: fraud
+  if (fraudDetected) {
+    return {
+      decision: 'fraud_rejected',
+      tier: 0,
+      qualityScore,
+      partialRefundPercent: 0,
+      partialRefundAmount: 0,
+      rule: 'fraud_detected'
+    };
+  }
+
+  // Hard override: very low trust — skip incentives, standard return only
+  if (trustScore < 40) {
     return {
       decision: 'standard_return',
-      rule: 'low_trust_score',
-      trustScore,
-      shippingRatio,
-      offerAmount: null,
+      tier: 3,
+      qualityScore,
+      partialRefundPercent: 0,
+      partialRefundAmount: 0,
+      rule: 'low_trust_score'
     };
   }
 
-  // Priority 2: High shipping ratio — offer green credits
-  if (shippingRatio > 0.40) {
+  // TIER 1: Keep the Item (quality >= 70)
+  if (qualityScore >= 70) {
+    const refundPercent = calcPartialRefundPercent(qualityScore);
+    const refundAmount = Math.round(productPrice * refundPercent / 100);
     return {
-      decision: 'green_credit',
-      rule: 'high_shipping_ratio',
-      trustScore,
-      shippingRatio,
-      offerAmount: Math.round(productPrice * 0.50),
+      decision: 'keep_item',
+      tier: 1,
+      qualityScore,
+      partialRefundPercent: refundPercent,
+      partialRefundAmount: refundAmount,
+      rule: 'tier1_keep_item'
     };
   }
 
-  // Priority 3: Grade C electronics — route to e-waste recycling
-  if (grade === 'C' && category === 'electronics') {
+  // TIER 2: List on Second Life (quality 50–69)
+  if (qualityScore >= 50) {
     return {
-      decision: 'recycle',
-      rule: 'ewaste_recycling',
-      trustScore,
-      shippingRatio,
-      offerAmount: 30,
+      decision: 'second_life',
+      tier: 2,
+      qualityScore,
+      partialRefundPercent: 100,
+      partialRefundAmount: productPrice,
+      rule: 'tier2_second_life'
     };
   }
 
-  // Priority 4: Grade C low value items — route to charity donation
-  if (grade === 'C' && productPrice < 2000) {
-    return {
-      decision: 'donate',
-      rule: 'charity_donation',
-      trustScore,
-      shippingRatio,
-      offerAmount: 50,
-    };
-  }
-
-  // Priority 5: High return risk clothing — offer direct exchange
-  if (highReturnRisk && category === 'clothing') {
-    return {
-      decision: 'exchange',
-      rule: 'sizing_exchange',
-      trustScore,
-      shippingRatio,
-      offerAmount: null,
-    };
-  }
-
-  // Priority 6: High demand — route to P2P resale
-  if (demandClassification === 'high') {
-    return {
-      decision: 'p2p_resale',
-      rule: 'high_demand',
-      trustScore,
-      shippingRatio,
-      offerAmount: null,
-    };
-  }
-
-  // Priority 7: Default — standard return (low demand warehouse liquidation)
+  // TIER 3: Standard Return (quality < 50 — item is too degraded)
   return {
     decision: 'standard_return',
-    rule: 'low_demand',
-    trustScore,
-    shippingRatio,
-    offerAmount: null,
+    tier: 3,
+    qualityScore,
+    partialRefundPercent: 0,
+    partialRefundAmount: 0,
+    rule: 'tier3_standard_return'
   };
 }
 

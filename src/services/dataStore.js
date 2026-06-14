@@ -1,109 +1,173 @@
-const fs = require('fs');
+const sqlite3 = require('sqlite3').verbose();
+const { open } = require('sqlite');
 const path = require('path');
 
-const DB_PATH = path.join(__dirname, '../../data/db.json');
+const DB_PATH = path.join(__dirname, '../../data/database.sqlite');
 
-/**
- * Reads and parses the JSON data store.
- * @returns {Object} Parsed db.json contents
- */
+let dbPromise = null;
+
+async function getDB() {
+  if (!dbPromise) {
+    dbPromise = open({
+      filename: DB_PATH,
+      driver: sqlite3.Database
+    });
+  }
+  return dbPromise;
+}
+
+// Deprecated functions that previously used fs
 function readDB() {
-  const raw = fs.readFileSync(DB_PATH, 'utf-8');
-  return JSON.parse(raw);
+  throw new Error('readDB is deprecated. Use async database methods instead.');
 }
 
-/**
- * Writes updated data to the JSON data store.
- * @param {Object} data - The full database object to persist
- */
 function writeDB(data) {
-  fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2), 'utf-8');
+  throw new Error('writeDB is deprecated. Use async database methods instead.');
 }
 
-/**
- * Retrieves a user record by ID.
- * @param {string} userId - The user's ID
- * @returns {Object|null} User record or null if not found
- */
-function getUserById(userId) {
-  const db = readDB();
-  return db.users.find(user => user.id === userId) || null;
+async function getUserById(userId) {
+  const db = await getDB();
+  return db.get(`SELECT * FROM users WHERE id = ?`, [userId]);
 }
 
-/**
- * Retrieves a product record by ID.
- * @param {string} productId - The product's ID
- * @returns {Object|null} Product record or null if not found
- */
-function getProductById(productId) {
-  const db = readDB();
-  return db.products.find(product => product.id === productId) || null;
-}
-
-/**
- * Retrieves all products.
- * @returns {Array} Array of all product records
- */
-function getAllProducts() {
-  const db = readDB();
-  return db.products;
-}
-
-/**
- * Returns all products with inventory_owner set to "amazon" (Second Life items).
- * @returns {Array} Array of product records owned by Amazon
- */
-function getSecondLifeItems() {
-  const db = readDB();
-  return db.products.filter(product => product.inventory_owner === 'amazon');
-}
-
-/**
- * Returns a user's orders from the last 30 days.
- * @param {string} userId - The user's ID
- * @returns {Array} Array of order records within the last 30 days
- */
-function getOrdersByUserId(userId) {
-  const db = readDB();
-  const now = new Date();
-  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-
-  return db.orders.filter(order => {
-    if (order.user_id !== userId) return false;
-    const orderDate = new Date(order.order_date);
-    return orderDate >= thirtyDaysAgo;
-  });
-}
-
-/**
- * Adds the specified amount to a user's Green_Credits balance.
- * @param {string} userId - The user's ID
- * @param {number} amount - Amount to add to green_credits
- * @returns {Object|null} Updated user record or null if user not found
- */
-function updateUserCredits(userId, amount) {
-  const db = readDB();
-  const user = db.users.find(u => u.id === userId);
-  if (!user) return null;
-
-  user.green_credits += amount;
-  writeDB(db);
-  return user;
-}
-
-/**
- * Sets a product's inventory_owner to "amazon".
- * @param {string} productId - The product's ID
- * @returns {Object|null} Updated product record or null if product not found
- */
-function markItemAsAmazonOwned(productId) {
-  const db = readDB();
-  const product = db.products.find(p => p.id === productId);
-  if (!product) return null;
-
-  product.inventory_owner = 'amazon';
-  writeDB(db);
+async function getProductById(productId) {
+  const db = await getDB();
+  const product = await db.get(`SELECT * FROM products WHERE id = ?`, [productId]);
+  if (product) {
+      product.high_return_risk = !!product.high_return_risk;
+      product.graded = !!product.graded;
+  }
   return product;
+}
+
+async function getAllProducts() {
+  const db = await getDB();
+  const products = await db.all(`SELECT * FROM products`);
+  products.forEach(p => {
+      p.high_return_risk = !!p.high_return_risk;
+      p.graded = !!p.graded;
+  });
+  return products;
+}
+
+async function getSecondLifeItems() {
+  const db = await getDB();
+  const products = await db.all(`SELECT * FROM products WHERE inventory_owner = 'amazon'`);
+  products.forEach(p => {
+      p.high_return_risk = !!p.high_return_risk;
+      p.graded = !!p.graded;
+  });
+  return products;
+}
+
+async function getOrdersByUserId(userId) {
+  const db = await getDB();
+  const orders = await db.all(`SELECT * FROM orders WHERE user_id = ? AND date(order_date) >= date('now', '-30 days')`, [userId]);
+  orders.forEach(o => o.returned = !!o.returned);
+  return orders;
+}
+
+async function updateUserCredits(userId, amount) {
+  const db = await getDB();
+  await db.run(`UPDATE users SET green_credits = green_credits + ? WHERE id = ?`, [amount, userId]);
+  return getUserById(userId);
+}
+
+async function markItemAsAmazonOwned(productId) {
+  const db = await getDB();
+  await db.run(`UPDATE products SET inventory_owner = 'amazon', graded = 1 WHERE id = ?`, [productId]);
+  return getProductById(productId);
+}
+
+async function getAllDemand() {
+  const db = await getDB();
+  return db.all(`SELECT * FROM demand`);
+}
+
+async function getAllDeliveryRoutes() {
+  const db = await getDB();
+  const routes = await db.all(`SELECT * FROM delivery_routes`);
+  routes.forEach(r => r.time_windows = JSON.parse(r.time_windows));
+  return routes;
+}
+
+async function getOrder(userId, productId) {
+    const db = await getDB();
+    return db.get(`SELECT * FROM orders WHERE user_id = ? AND product_id = ?`, [userId, productId]);
+}
+
+async function markOrderReturned(orderId, returnType) {
+    const db = await getDB();
+    await db.run(`UPDATE orders SET returned = 1, status = ? WHERE order_id = ?`, [returnType, orderId]);
+}
+
+async function updateProductResale(productId, grade, resalePrice) {
+    const db = await getDB();
+    await db.run(`UPDATE products SET inventory_owner = 'amazon', graded = 1, grade = ?, resale_price = ? WHERE id = ?`, [grade, resalePrice, productId]);
+}
+
+async function createOrder(orderId, userId, productId, orderDate, status) {
+    const db = await getDB();
+    await db.run(
+        `INSERT INTO orders (order_id, user_id, product_id, order_date, status, returned) VALUES (?, ?, ?, ?, ?, 0)`,
+        [orderId, userId, productId, orderDate, status]
+    );
+    return getOrder(userId, productId);
+}
+
+async function getAllOrders() {
+    const db = await getDB();
+    return db.all(`SELECT * FROM orders`);
+}
+
+async function getAllUsers() {
+    const db = await getDB();
+    return db.all(`SELECT * FROM users`);
+}
+
+async function buySecondLifeItem(userId, productId) {
+    const db = await getDB();
+    // Set inventory_owner to user to remove from Amazon stocks
+    await db.run(`UPDATE products SET inventory_owner = ? WHERE id = ?`, [userId, productId]);
+    
+    // Create an order
+    const orderId = 'ord_' + Math.floor(Math.random() * 1000000);
+    const orderDate = new Date().toISOString().split('T')[0];
+    await db.run(
+        `INSERT INTO orders (order_id, user_id, product_id, order_date, status, returned) VALUES (?, ?, ?, ?, ?, 0)`,
+        [orderId, userId, productId, orderDate, 'processing']
+    );
+    return getProductById(productId);
+}
+
+async function checkoutCart(userId, items, creditsUsed) {
+    const db = await getDB();
+    
+    // Deduct credits
+    if (creditsUsed > 0) {
+        await db.run(`UPDATE users SET green_credits = green_credits - ? WHERE id = ?`, [creditsUsed, userId]);
+    }
+    
+    const orderDate = new Date().toISOString().split('T')[0];
+    const results = [];
+    
+    for (const item of items) {
+        const orderId = 'ord_' + Math.floor(Math.random() * 1000000);
+        
+        // If it's a second life item currently owned by amazon, transfer ownership
+        if (item.inventory_owner === 'amazon') {
+            await db.run(`UPDATE products SET inventory_owner = ? WHERE id = ?`, [userId, item.id]);
+        }
+        
+        await db.run(
+            `INSERT INTO orders (order_id, user_id, product_id, order_date, status, returned) VALUES (?, ?, ?, ?, ?, 0)`,
+            [orderId, userId, item.id, orderDate, 'processing']
+        );
+        
+        results.push(await getProductById(item.id));
+    }
+    
+    return results;
 }
 
 module.exports = {
@@ -115,5 +179,15 @@ module.exports = {
   getSecondLifeItems,
   getOrdersByUserId,
   updateUserCredits,
-  markItemAsAmazonOwned
+  markItemAsAmazonOwned,
+  getAllDemand,
+  getAllDeliveryRoutes,
+  getOrder,
+  markOrderReturned,
+  updateProductResale,
+  createOrder,
+  getAllOrders,
+  getAllUsers,
+  buySecondLifeItem,
+  checkoutCart
 };

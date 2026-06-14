@@ -988,6 +988,7 @@
       cart.push(product);
       localStorage.setItem('cart', JSON.stringify(cart));
       if (typeof updateGlobalCartCount === 'function') updateGlobalCartCount();
+      window.dispatchEvent(new Event('storage'));
       showToast('Item added to cart!');
     }
 

@@ -901,9 +901,9 @@
 
   <!-- Hero -->
   <section class="hero">
-    <div class="hero__badge">🌱 AI-Certified Quality</div>
-    <h1 class="hero__title">Give Products a <span>Second Life</span></h1>
-    <p class="hero__subtitle">Every item is AI-graded, quality-certified, and priced for value. Buy refurbished, save money, and reduce your carbon footprint.</p>
+    <div class="hero__badge" style="background: #E53935; color: white;">⚡ LOCAL FLASH SALE IN <span id="user-location-text">YOUR AREA</span> ⚡</div>
+    <h1 class="hero__title">Ends in <span id="countdown-timer" style="color: var(--orange-500); font-variant-numeric: tabular-nums;">02:45:30</span></h1>
+    <p class="hero__subtitle">Exclusive, heavily discounted P2P returns available in your city for a limited time. Grab them before they're shipped away!</p>
 
     <div class="impact-stats">
       <div class="impact-stat">
@@ -998,7 +998,7 @@
           document.querySelectorAll('.user-btn').forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
           currentUser = btn.dataset.user;
-          renderGrid(allItems);
+          loadItems(); // Reload items for the new user's region
         });
       });
 
@@ -1007,9 +1007,6 @@
       const modalOverlay = document.getElementById('item-modal');
       const modalBody = document.getElementById('modal-body');
       const modalCloseBtn = document.getElementById('modal-close-btn');
-
-      let allItems = [];
-      let activeFilter = 'all';
 
       // ── Category icons ──
       function getIcon(cat) {
@@ -1069,23 +1066,33 @@
               <span class="product-card__trust-badge-icon">✓</span>
               Grade ${escapeHtml(item.grade)} · ${gradeLabel(item.grade)}
             </span>
-            <span class="product-card__eco-tag">🌱 Saves ${item.carbon_savings_kg} kg CO₂</span>
+            <span class="product-card__eco-tag" style="display: none;"></span>
           </div>
           <div class="product-card__body">
+            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
+              <span style="background: linear-gradient(135deg, #00A86B, #2ED889); color: white; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 2px 4px rgba(0,168,107,0.2);">✓ Amazon Trusted</span>
+              <span style="background: linear-gradient(135deg, #7B61FF, #9B85FF); color: white; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 2px 4px rgba(123,97,255,0.2);">🤖 AI Verified</span>
+            </div>
             <div class="product-card__category">${escapeHtml(item.category)}</div>
             <h3 class="product-card__name">${escapeHtml(item.name)}</h3>
             <div class="product-card__pricing">
               <span class="product-card__resale-price">₹${item.resale_price.toLocaleString('en-IN')}</span>
               <span class="product-card__original-price">₹${item.price.toLocaleString('en-IN')}</span>
-              <span class="product-card__discount">${discount}% off</span>
+              <span class="product-card__discount" style="background: #E53935; color: white; padding: 2px 6px; border-radius: 4px; font-weight: 800;">${discount}% off</span>
             </div>
             <div class="product-card__rating">
               <span class="product-card__stars">${rating.stars}</span>
               <span class="product-card__reviews">${rating.count.toLocaleString()} ratings</span>
             </div>
-            <div class="product-card__carbon">
-              <span>🌍</span>
-              <span>Saves ${item.carbon_savings_kg} kg CO₂ vs buying new</span>
+            <div class="product-card__carbon" style="background: rgba(0, 168, 107, 0.08); padding: 10px; border-radius: 8px; margin-bottom: 16px; font-size: 12px; font-weight: 600; color: #067D62; border: 1px solid rgba(0, 168, 107, 0.2);">
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                <span style="font-size: 16px;">🌍</span>
+                <span>Saves <strong>${item.carbon_savings_kg} kg CO₂</strong> vs buying new</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 16px;">⚡</span>
+                <span style="color: #E07020;">Delivered in <strong>2-3 Hours</strong> (Local Seller)</span>
+              </div>
             </div>
             <button class="product-card__cta">View AI Condition Report</button>
           </div>
@@ -1100,17 +1107,8 @@
         itemsContainer.innerHTML = '';
         
         let filtered = [];
-        if (activeFilter === 'all') {
-          filtered = items;
-        } else if (activeFilter === 'recommended') {
-          // Fake personalized recommendation logic based on user
-          const isMumbai = currentUser === 'user_002';
-          filtered = items.filter((i, index) => {
-             // For Delhi (user 1 & 5): show winter/accessories/electronics
-             // For Mumbai (user 2): show different items
-             if (isMumbai) return index % 2 !== 0;
-             return index % 2 === 0;
-          });
+        if (activeFilter === 'all' || activeFilter === 'recommended') {
+          filtered = items; // Region filtering is already handled by the API
         } else {
           filtered = items.filter(i => i.category === activeFilter);
         }
@@ -1180,15 +1178,18 @@
             </div>
           </div>
 
-          <div class="modal__section">
+          <div class="modal__section" style="margin-top: 16px;">
             <p class="modal__section-label">Environmental Impact</p>
-            <div class="modal__carbon-box">
+            <div class="modal__carbon-box" style="margin-bottom: 24px;">
               <span class="modal__carbon-icon">🌍</span>
               <span>Buying this refurbished saves <strong>${item.carbon_savings_kg} kg of CO₂</strong> compared to manufacturing new</span>
             </div>
           </div>
 
-          <button class="modal__cta-btn" onclick="addToCart()">Add to Cart — ₹${item.resale_price.toLocaleString('en-IN')}</button>
+          <div style="display: flex; gap: 12px;">
+            <button class="modal__cta-btn" style="flex: 1; background: #FF9900; color: #111;" onclick="buyNow()">⚡ Buy Now — ₹${item.resale_price.toLocaleString('en-IN')}</button>
+            <button class="modal__cta-btn" style="flex: 1; background: #f3f3f3; color: #333; border: 1px solid #ddd;" onclick="addToCart()">🛒 Add to Cart</button>
+          </div>
         `;
 
         modalOverlay.classList.add('active');
@@ -1201,6 +1202,33 @@
         document.body.style.overflow = '';
       }
 
+      window.buyNow = async function() {
+        if (!window.currentModalItem) return;
+        
+        try {
+          const res = await fetch('/api/checkout-second-life', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              user_id: currentUser,
+              product_id: window.currentModalItem.id
+            })
+          });
+          
+          if (!res.ok) throw new Error('Checkout failed');
+          
+          closeModal();
+          showToast('🎉 Purchase successful! Item removed from stocks.');
+          
+          // Reload items to update stocks
+          loadItems();
+          
+        } catch (err) {
+          console.error(err);
+          showToast('❌ Failed to process checkout. Please try again.');
+        }
+      };
+
       window.addToCart = function() {
         closeModal();
         
@@ -1209,12 +1237,16 @@
           let cart = JSON.parse(localStorage.getItem('cart')) || [];
           cart.push(window.currentModalItem);
           localStorage.setItem('cart', JSON.stringify(cart));
-          console.log('Cart updated:', cart);
           if (typeof updateGlobalCartCount === 'function') updateGlobalCartCount();
+          window.dispatchEvent(new Event('storage'));
         }
 
+        showToast('Added to cart! Complete purchase on Amazon.in');
+      };
+      
+      function showToast(message) {
         const toast = document.createElement('div');
-        toast.textContent = 'Added to cart! Complete purchase on Amazon.in';
+        toast.textContent = message;
         toast.style.position = 'fixed';
         toast.style.bottom = '24px';
         toast.style.right = '24px';
@@ -1241,7 +1273,7 @@
           toast.style.transform = 'translateY(20px)';
           setTimeout(() => toast.remove(), 300);
         }, 3000);
-      };
+      }
 
       modalCloseBtn.addEventListener('click', closeModal);
       modalOverlay.addEventListener('click', e => { if (e.target === modalOverlay) closeModal(); });
@@ -1265,7 +1297,12 @@
       // ── Load items ──
       async function loadItems() {
         try {
-          const res = await fetch('/api/second-life');
+          const userBtn = document.querySelector('.user-btn.active');
+          const userRegion = userBtn ? (userBtn.textContent.includes('Delhi') ? 'Delhi' : 'Mumbai') : 'Delhi';
+          const locText = document.getElementById('user-location-text');
+          if (locText) locText.textContent = userRegion.toUpperCase();
+
+          const res = await fetch(`/api/second-life?region=${userRegion}`);
           if (!res.ok) throw new Error(`HTTP ${res.status}`);
           allItems = await res.json();
 
@@ -1298,7 +1335,21 @@
         }
       }
 
-      document.addEventListener('DOMContentLoaded', loadItems);
+      document.addEventListener('DOMContentLoaded', () => {
+        loadItems();
+        
+        // ── Countdown Timer ──
+        const timerEl = document.getElementById('countdown-timer');
+        let totalSeconds = 2 * 3600 + 45 * 60 + 30; // 2h 45m 30s
+        setInterval(() => {
+          if (totalSeconds <= 0) return;
+          totalSeconds--;
+          const h = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
+          const m = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+          const s = String(totalSeconds % 60).padStart(2, '0');
+          if (timerEl) timerEl.textContent = `${h}:${m}:${s}`;
+        }, 1000);
+      });
     })();
   </script>
 
