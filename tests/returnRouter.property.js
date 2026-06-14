@@ -3,67 +3,70 @@ const assert = require('node:assert/strict');
 const fc = require('fast-check');
 const { routeReturn } = require('../src/services/returnRouter');
 
-/**
- * Property 6: Return Routing Priority Rules
- * 
- * For any combination of trustScore (0-100), returnShippingCost, productPrice (positive),
- * and demandClassification ("high"/"low"), the routeReturn function follows strict priority ordering.
- * 
- * Validates: Requirements 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 3.2, 3.3
- */
 describe('Return Router - Property Tests', () => {
-  it('Property 6: Routing follows strict priority rules', () => {
+  it('Property 6: Routing follows strict 3-tier rules', () => {
     fc.assert(
       fc.property(
+        fc.integer({ min: 0, max: 100 }),           // qualityScore
+        fc.constantFrom('A', 'B', 'C'),             // grade
+        fc.integer({ min: 199, max: 50000 }),       // productPrice (INR)
         fc.integer({ min: 0, max: 100 }),           // trustScore
-        fc.integer({ min: 50, max: 500 }),          // returnShippingCost (INR)
-        fc.integer({ min: 199, max: 50000 }),       // productPrice (INR, positive)
-        fc.constantFrom('high', 'low'),             // demandClassification
-        (trustScore, returnShippingCost, productPrice, demandClassification) => {
-          const result = routeReturn({ trustScore, returnShippingCost, productPrice, demandClassification });
+        fc.boolean(),                               // fraudDetected
+        (qualityScore, grade, productPrice, trustScore, fraudDetected) => {
+          const result = routeReturn({ qualityScore, grade, productPrice, trustScore, fraudDetected });
 
-          // The implementation rounds shippingRatio to 2 decimal places
-          const shippingRatio = Math.round((returnShippingCost / productPrice) * 100) / 100;
-
-          // Priority 1: Low trust score → standard_return (short-circuit)
-          if (trustScore < 50) {
-            assert.equal(result.decision, 'standard_return',
-              `Expected standard_return for low trust (${trustScore})`);
+          // 1. Fraud Override
+          if (fraudDetected) {
+            assert.equal(result.decision, 'fraud_rejected');
+            assert.equal(result.tier, 0);
+            assert.equal(result.rule, 'fraud_detected');
+            assert.equal(result.partialRefundAmount, 0);
+          }
+          // 2. Low Trust Override
+          else if (trustScore < 40) {
+            assert.equal(result.decision, 'standard_return');
+            assert.equal(result.tier, 3);
             assert.equal(result.rule, 'low_trust_score');
-            assert.equal(result.offerAmount, null);
+            assert.equal(result.partialRefundAmount, 0);
           }
-          // Priority 2: High shipping ratio → green_credit
-          else if (shippingRatio > 0.40) {
-            assert.equal(result.decision, 'green_credit',
-              `Expected green_credit for high shipping ratio (${shippingRatio})`);
-            assert.equal(result.rule, 'high_shipping_ratio');
-            assert.equal(result.offerAmount, Math.round(productPrice * 0.50));
+          // 3. Tier 1: Keep Item (quality >= 70)
+          else if (qualityScore >= 70) {
+            assert.equal(result.decision, 'keep_item');
+            assert.equal(result.tier, 1);
+            assert.equal(result.rule, 'tier1_keep_item');
+            
+            let expectedPercent = 0;
+            if (qualityScore >= 85) expectedPercent = 15;
+            else if (qualityScore >= 75) expectedPercent = 22;
+            else expectedPercent = 30;
+
+            assert.equal(result.partialRefundPercent, expectedPercent);
+            assert.equal(result.partialRefundAmount, Math.round(productPrice * expectedPercent / 100));
           }
-          // Priority 3: High demand → p2p_resale
-          else if (demandClassification === 'high') {
-            assert.equal(result.decision, 'p2p_resale',
-              `Expected p2p_resale for high demand`);
-            assert.equal(result.rule, 'high_demand');
-            assert.equal(result.offerAmount, null);
+          // 4. Tier 2: Second Life (quality 50-69)
+          else if (qualityScore >= 50) {
+            assert.equal(result.decision, 'second_life');
+            assert.equal(result.tier, 2);
+            assert.equal(result.rule, 'tier2_second_life');
+            assert.equal(result.partialRefundPercent, 100);
+            assert.equal(result.partialRefundAmount, productPrice);
           }
-          // Priority 4: Default → standard_return (low demand)
+          // 5. Tier 3: Standard Return (quality < 50)
           else {
-            assert.equal(result.decision, 'standard_return',
-              `Expected standard_return as default (low demand)`);
-            assert.equal(result.rule, 'low_demand');
-            assert.equal(result.offerAmount, null);
+            assert.equal(result.decision, 'standard_return');
+            assert.equal(result.tier, 3);
+            assert.equal(result.rule, 'tier3_standard_return');
+            assert.equal(result.partialRefundPercent, 0);
+            assert.equal(result.partialRefundAmount, 0);
           }
 
           // Structural invariant: response always includes required fields
-          assert.ok('decision' in result, 'Response must include decision');
-          assert.ok('rule' in result, 'Response must include rule');
-          assert.ok('trustScore' in result, 'Response must include trustScore');
-          assert.ok('shippingRatio' in result, 'Response must include shippingRatio');
-          assert.ok('offerAmount' in result, 'Response must include offerAmount');
-
-          // trustScore and shippingRatio are echoed correctly
-          assert.equal(result.trustScore, trustScore);
-          assert.equal(result.shippingRatio, shippingRatio);
+          assert.ok('decision' in result);
+          assert.ok('tier' in result);
+          assert.ok('qualityScore' in result);
+          assert.ok('partialRefundPercent' in result);
+          assert.ok('partialRefundAmount' in result);
+          assert.ok('rule' in result);
         }
       ),
       { numRuns: 500 }
