@@ -41,6 +41,15 @@ function getProductById(productId) {
 }
 
 /**
+ * Retrieves all products.
+ * @returns {Array} Array of all product records
+ */
+function getAllProducts() {
+  const db = readDB();
+  return db.products;
+}
+
+/**
  * Returns all products with inventory_owner set to "amazon" (Second Life items).
  * @returns {Array} Array of product records owned by Amazon
  */
@@ -102,6 +111,7 @@ module.exports = {
   writeDB,
   getUserById,
   getProductById,
+  getAllProducts,
   getSecondLifeItems,
   getOrdersByUserId,
   updateUserCredits,

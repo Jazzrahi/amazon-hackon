@@ -195,57 +195,59 @@
       filter: drop-shadow(0 10px 20px rgba(0,0,0,0.1));
     }
 
-    /* ─── DISCOVER CARDS (AMAZON STYLE) ─── */
-    .discover-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 20px;
-      margin-bottom: 40px;
-    }
-
-    .discover-card {
+    /* ─── PRODUCT ROWS ─── */
+    .product-row-container {
       background: var(--white);
       padding: 20px;
+      margin-bottom: 20px;
       border-radius: 4px;
-      text-decoration: none;
-      color: var(--amazon-text);
       box-shadow: 0 1px 4px rgba(0,0,0,0.05);
-      display: flex;
-      flex-direction: column;
-      transition: transform 0.2s;
     }
-
-    .discover-card:hover {
-      transform: translateY(-2px);
-    }
-
-    .discover-card__title {
+    .product-row-title {
       font-size: 20px;
       font-weight: 700;
+      color: var(--amazon-text);
       margin-bottom: 16px;
     }
-
-    .discover-card__image {
-      flex: 1;
-      background: var(--amazon-bg);
+    .product-row {
+      display: flex;
+      gap: 16px;
+      overflow-x: auto;
+      padding-bottom: 12px;
+    }
+    .product-row::-webkit-scrollbar { height: 8px; }
+    .product-row::-webkit-scrollbar-thumb { background: var(--amazon-border); border-radius: 4px; }
+    
+    .product-card {
+      min-width: 160px;
+      max-width: 160px;
+      text-decoration: none;
+      color: var(--amazon-text);
+      display: flex;
+      flex-direction: column;
+    }
+    .product-card__img-wrapper {
+      background: #f8f8f8;
+      width: 100%;
+      height: 160px;
+      margin-bottom: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
-      min-height: 240px;
-      margin-bottom: 16px;
-      font-size: 64px;
+      overflow: hidden;
+      border-radius: 4px;
     }
-
-    .discover-card__link {
-      color: var(--amazon-link);
+    .product-card img { width: 100%; height: 100%; object-fit: cover; }
+    .product-card__name {
       font-size: 14px;
-      font-weight: 500;
+      color: var(--amazon-link);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 4px;
     }
-
-    .discover-card__link:hover {
-      color: #C45500;
-      text-decoration: underline;
-    }
+    .product-card__name:hover { color: #C45500; text-decoration: underline; }
+    .product-card__price { font-size: 18px; font-weight: 700; color: #B12704; }
 
     /* ─── LIVE STATS STRIP ─── */
     .stats-strip {
@@ -391,28 +393,19 @@
       </div>
     </div>
 
-    <!-- Discover Cards -->
-    <div class="discover-grid">
-      <!-- Card 1 -->
-      <a href="/product.html" class="discover-card">
-        <h2 class="discover-card__title">Shop smart, prevent returns</h2>
-        <div class="discover-card__image">👕</div>
-        <span class="discover-card__link">See AI eco-alerts in action</span>
-      </a>
+    <!-- Product Rows -->
+    <div class="product-row-container">
+      <h2 class="product-row-title">Inspired by your shopping trends</h2>
+      <div class="product-row" id="row-trends">
+        <!-- Products injected via JS -->
+      </div>
+    </div>
 
-      <!-- Card 2 -->
-      <a href="/orders.html" class="discover-card">
-        <h2 class="discover-card__title">Smart Return Triage</h2>
-        <div class="discover-card__image">🔄</div>
-        <span class="discover-card__link">Try the AI return flow</span>
-      </a>
-
-      <!-- Card 3 -->
-      <a href="/green-credits.html" class="discover-card">
-        <h2 class="discover-card__title">Earn Green Credits</h2>
-        <div class="discover-card__image">💚</div>
-        <span class="discover-card__link">View your eco rewards</span>
-      </a>
+    <div class="product-row-container">
+      <h2 class="product-row-title">Amazon Second Life Finds</h2>
+      <div class="product-row" id="row-secondlife">
+        <!-- Products injected via JS -->
+      </div>
     </div>
 
   </div>
@@ -450,7 +443,44 @@
       }
     }
 
-    document.addEventListener('DOMContentLoaded', loadStats);
+    async function loadProducts() {
+      try {
+        const res = await fetch('/api/products');
+        const products = await res.json();
+        
+        const row1Products = products.slice(0, 4);
+        const row2Products = products.slice(4, 7);
+
+        function renderRow(containerId, items) {
+          const container = document.getElementById(containerId);
+          if (!container) return;
+          container.innerHTML = items.map(p => {
+            const icon = p.image_url 
+              ? `<img src="${p.image_url}" alt="${p.name}">`
+              : `<div style="font-size: 40px;">📦</div>`;
+            return `
+              <a href="/product.html?id=${p.id}" class="product-card">
+                <div class="product-card__img-wrapper">
+                  ${icon}
+                </div>
+                <div class="product-card__name">${p.name}</div>
+                <div class="product-card__price">₹${p.price.toLocaleString('en-IN')}</div>
+              </a>
+            `;
+          }).join('');
+        }
+
+        renderRow('row-trends', row1Products);
+        renderRow('row-secondlife', row2Products);
+      } catch (e) {
+        console.error('[Products]', e);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadStats();
+      loadProducts();
+    });
   </script>
 
 </body>

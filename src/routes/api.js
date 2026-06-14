@@ -1,12 +1,20 @@
 const express = require('express');
 const router = express.Router();
 
-const { getUserById, getProductById, getSecondLifeItems, getOrdersByUserId, readDB, updateUserCredits, markItemAsAmazonOwned, writeDB } = require('../services/dataStore');
+const { getUserById, getProductById, getAllProducts, getSecondLifeItems, getOrdersByUserId, readDB, updateUserCredits, markItemAsAmazonOwned, writeDB } = require('../services/dataStore');
 const { gradeItem } = require('../services/gradingEngine');
 const { calculateResalePrice } = require('../services/pricingEngine');
 const { getDemandScore } = require('../services/demandPredictor');
 const { routeReturn } = require('../services/returnRouter');
 const { schedulePickup } = require('../services/reverseLogistics');
+
+/**
+ * GET /api/products
+ * Returns all products (200)
+ */
+router.get('/products', (req, res) => {
+  res.json(getAllProducts());
+});
 
 /**
  * GET /api/product/:id
@@ -27,7 +35,7 @@ router.get('/product/:id', (req, res) => {
  * Orchestrates: grading → pricing → demand → routing → logistics
  * Returns full response (200) or error (400)
  */
-router.post('/process-return', (req, res) => {
+router.post('/process-return', async (req, res) => {
   const { user_id, product_id } = req.body;
 
   // Validate required fields
@@ -53,12 +61,41 @@ router.post('/process-return', (req, res) => {
     return res.status(400).json({ error: 'Product not found' });
   }
 
-  // Step 1: Grade the item (simulated upload)
-  const { grade, explanation } = gradeItem({
-    imageCount: 3,
-    totalFileSize: 2000000,
-    fileType: 'image'
-  });
+  // Step 1: Grade the item (real Vision AI if image provided, else mock)
+  let grade = 'B';
+  let explanation = 'Assessed via basic algorithms.';
+  let fraudDetected = false;
+
+  if (req.body.image_base64) {
+    const { analyzeImage } = require('../services/visionAi');
+    const aiResult = await analyzeImage(
+      req.body.image_base64, 
+      req.body.image_mime || 'image/jpeg', 
+      product.category, 
+      product.name
+    );
+    
+    if (aiResult) {
+      grade = aiResult.grade;
+      explanation = aiResult.explanation;
+      if (!aiResult.isValid) {
+        fraudDetected = true;
+        explanation = "FRAUD DETECTED: The uploaded image does not match the expected product. " + explanation;
+        // If fraud is detected, force trust score to 0 to trigger a standard return/manual inspection.
+        user.trust_score = 0; 
+      }
+    } else {
+      // Fallback if AI fails or no API key
+      const mockGrade = gradeItem({ imageCount: 1, totalFileSize: 1000000, fileType: 'image' });
+      grade = mockGrade.grade;
+      explanation = mockGrade.explanation;
+    }
+  } else {
+    // Legacy mock grading
+    const mockGrade = gradeItem({ imageCount: 3, totalFileSize: 2000000, fileType: 'image' });
+    grade = mockGrade.grade;
+    explanation = mockGrade.explanation;
+  }
 
   // Step 2: Calculate resale price
   const { resalePrice, markdownPercent } = calculateResalePrice(product.price, grade);
@@ -81,6 +118,11 @@ router.post('/process-return', (req, res) => {
     category: product.category,
     highReturnRisk: product.high_return_risk
   });
+
+  if (fraudDetected) {
+    routingResult.decision = 'fraud_rejected';
+    routingResult.rule = 'Fraud Detected by AI Vision';
+  }
 
   // Step 5: Schedule pickup
   const pickupResult = schedulePickup(user.area, db.delivery_routes);

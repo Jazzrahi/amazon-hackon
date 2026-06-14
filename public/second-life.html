@@ -1042,9 +1042,13 @@
         card.style.animationDelay = `${idx * 80}ms`;
         card.dataset.category = item.category;
 
+        const imageContent = item.image_url 
+          ? `<img src="${escapeHtml(item.image_url)}" alt="${escapeHtml(item.name)}" style="width:100%; height:100%; object-fit:cover;">`
+          : `<span class="product-card__image-icon">${getIcon(item.category)}</span>`;
+
         card.innerHTML = `
           <div class="product-card__image">
-            <span class="product-card__image-icon">${getIcon(item.category)}</span>
+            ${imageContent}
             <span class="product-card__trust-badge product-card__trust-badge--${gc}">
               <span class="product-card__trust-badge-icon">✓</span>
               Grade ${escapeHtml(item.grade)} · ${gradeLabel(item.grade)}

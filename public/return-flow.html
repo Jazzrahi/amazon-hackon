@@ -365,6 +365,7 @@
     .result-header--orange { background: linear-gradient(135deg, #E07020, #F09050); }
     .result-header--teal { background: linear-gradient(135deg, #009688, #26A69A); }
     .result-header--navy { background: linear-gradient(135deg, var(--navy-900), var(--navy-600)); }
+    .result-header--red { background: linear-gradient(135deg, #E53935, #B71C1C); }
 
     .result-header__icon { font-size: 44px; margin-bottom: 10px; }
 
@@ -462,6 +463,7 @@
       <p class="step-card__desc">Take a quick photo of your item so our AI can assess its condition and find the best sustainable option for you.</p>
 
       <div class="upload-area" id="upload-area">
+        <input type="file" id="file-input" accept="image/*" capture="environment" style="display: none;">
         <div class="upload-area__icon" id="upload-icon">📷</div>
         <div class="upload-area__text" id="upload-text">Tap to capture or upload photo</div>
       </div>
@@ -619,6 +621,20 @@
         </div>
       </div>
 
+      <!-- Fraud Rejected -->
+      <div id="result-fraud_rejected" class="result-card">
+        <div class="result-header result-header--red">
+          <div class="result-header__icon">🛑</div>
+          <h2 class="result-header__title">Return Rejected</h2>
+          <p class="result-header__subtitle">Item Mismatch Detected</p>
+        </div>
+        <div class="result-body">
+          <p class="result-detail">Our AI Vision system detected that the uploaded image does not match the expected product for this return. Standard return processing is suspended.</p>
+          <div class="result-info-box" id="fraud-info"></div>
+          <button class="btn btn--primary" onclick="location.href='orders.html'">Contact Customer Support</button>
+        </div>
+      </div>
+
     </div>
 
   </div>
@@ -640,16 +656,35 @@
     const stepResult = document.getElementById('step-result');
 
     let photoUploaded = false;
+    let base64Image = null;
+    let imageMime = null;
 
     // ── Upload mock ──
+    const fileInput = document.getElementById('file-input');
+
     uploadArea.addEventListener('click', () => {
       if (photoUploaded) return;
-      uploadArea.classList.add('uploaded');
-      uploadIcon.textContent = '✅';
-      uploadText.textContent = 'Photo uploaded successfully';
-      photoUploaded = true;
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Analyze with AI →';
+      fileInput.click();
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files.length > 0) {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const result = reader.result;
+          imageMime = result.split(';')[0].split(':')[1];
+          base64Image = result.split(',')[1];
+          
+          uploadArea.classList.add('uploaded');
+          uploadIcon.textContent = '✅';
+          uploadText.textContent = 'Photo ready for AI Analysis';
+          photoUploaded = true;
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Analyze with AI →';
+        };
+        reader.readAsDataURL(file);
+      }
     });
 
     // ── Submit ──
@@ -662,10 +697,16 @@
       updateProgress(2);
 
       // Start API call in parallel with animation
+      const payload = { user_id: userId, product_id: productId };
+      if (base64Image) {
+        payload.image_base64 = base64Image;
+        payload.image_mime = imageMime;
+      }
+
       const apiPromise = fetch('/api/process-return', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: userId, product_id: productId })
+        body: JSON.stringify(payload)
       }).then(r => r.json());
 
       // Run analysis animation
@@ -793,6 +834,15 @@
           ['Return Method', 'Prepaid shipping label'],
           ['Pickup', d.pickup?.scheduled ? `${d.pickup.pickup_day}, ${d.pickup.time_window}` : 'Drop-off at nearest point'],
           ['Refund Timeline', '5-7 business days'],
+        ]);
+      }
+
+      if (d.decision === 'fraud_rejected') {
+        document.getElementById('fraud-info').innerHTML = infoRows([
+          ['Expected Item', name],
+          ['Reason', 'Image does not match item'],
+          ['Action Required', 'Manual Inspection Required'],
+          ['Account Status', 'Under Review'],
         ]);
       }
     }
