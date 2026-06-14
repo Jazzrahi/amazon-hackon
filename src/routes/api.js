@@ -124,8 +124,11 @@ router.post('/process-return', async (req, res) => {
     routingResult.rule = 'Fraud Detected by AI Vision';
   }
 
-  // Step 5: Schedule pickup
-  const pickupResult = schedulePickup(user.area, db.delivery_routes);
+  // Step 5: Schedule pickup (only if not fraud)
+  let pickupResult = null;
+  if (!fraudDetected) {
+    pickupResult = schedulePickup(user.area, db.delivery_routes);
+  }
 
   // Build response
   const response = {
@@ -142,12 +145,12 @@ router.post('/process-return', async (req, res) => {
     product_price: product.price,
     category: product.category,
     carbon_savings_kg: product.carbon_savings_kg,
-    pickup: {
+    pickup: pickupResult ? {
       scheduled: pickupResult.scheduled,
       pickup_day: pickupResult.pickupDay || null,
       time_window: pickupResult.timeWindow || null,
       driver_name: pickupResult.driverName || null
-    }
+    } : null
   };
 
   res.json(response);

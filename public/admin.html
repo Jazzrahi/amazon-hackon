@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Analytics – Return Routing Decisions</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --amazon-navy: #232F3E;
+      --amazon-navy-light: #37475A;
+      --amazon-orange: #FF9900;
+      --white: #FFFFFF;
+      --radius: 8px;
+    }
+    body {
+      margin: 0;
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--white);
+      color: var(--amazon-navy);
+    }
+    .header {
+      background: var(--amazon-navy);
+      color: var(--white);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .header a {
+      color: var(--white);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+    h1 {
+      text-align: center;
+      font-weight: 800;
+      margin-bottom: 32px;
+    }
+    .chart-wrapper {
+      background: #f8f9fb;
+      padding: 24px;
+      border-radius: var(--radius);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <a href="/" class="logo">← Home</a>
+    <span>Admin Analytics</span>
+  </header>
+  <div class="container">
+    <h1>Return Routing Decisions</h1>
+    <div class="chart-wrapper">
+      <canvas id="routingChart" height="400"></canvas>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    const ctx = document.getElementById('routingChart').getContext('2d');
+    const data = {
+      labels: ['Standard Returns', 'Green Credits', 'P2P Resale', 'Exchanges', 'E‑Waste Recycle', 'Donations', 'Fraud Rejected'],
+      datasets: [{
+        label: 'Decisions (last 30 days)',
+        data: [124, 58, 32, 21, 9, 15, 5], // made‑up realistic numbers
+        backgroundColor: [
+          '#4A90E2', '#7ED321', '#F5A623', '#D0021B', '#B8E986', '#9013FE', '#FF5A5F'
+        ],
+        borderColor: '#fff',
+        borderWidth: 1,
+        borderRadius: 4,
+      }]
+    };
+    new Chart(ctx, {
+      type: 'bar',
+      data: data,
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: false },
+          tooltip: { mode: 'index', intersect: false }
+        },
+        scales: {
+          y: { beginAtZero: true, title: { display: true, text: 'Count' } },
+          x: { title: { display: true, text: 'Routing Decision' } }
+        }
+      }
+    });
+  </script>
+</body>
+</html>
