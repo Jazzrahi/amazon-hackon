@@ -587,6 +587,24 @@
       <button id="submit-btn" class="btn btn--primary" disabled>Analyze with AI →</button>
     </div>
 
+    <!-- ═══ STEP 2.5: RETURN REASON ═══ -->
+    <div id="step-reason" class="step-card hidden">
+      <div class="step-card__icon">❓</div>
+      <h2 class="step-card__title">Return Reason</h2>
+      <p class="step-card__desc">Select a reason and give a short description. The AI will verify the photo matches your claim.</p>
+      <select id="reason-select" class="btn btn--outline">
+        <option value="">Select a reason</option>
+        <option value="damaged">Damaged / Defective</option>
+        <option value="wrong_size">Wrong size / Fit</option>
+        <option value="incorrect_item">Incorrect item shipped</option>
+        <option value="other">Other (specify below)</option>
+      </select>
+      <input type="text" id="reason-other" placeholder="Explain other reason" style="display:none; margin-top:8px; width:100%; padding:8px; border:1px solid var(--gray-300); border-radius:6px;" />
+      <textarea id="reason-description" placeholder="Add a short description (max 150 chars)…" rows="3" style="margin-top:12px; width:100%; padding:8px; border:1px solid var(--gray-300); border-radius:6px;"></textarea>
+      <button id="validate-reason-btn" class="btn btn--primary" style="margin-top:12px;" disabled>Validate Reason</button>
+      <div id="reason-result" style="margin-top:12px; font-weight:600;"></div>
+    </div>
+
     <!-- ═══ STEP 3: AI ANALYSIS ═══ -->
     <div id="step-analysis" class="step-card hidden">
       <div class="step-card__icon">🤖</div>
@@ -757,6 +775,13 @@
     const fileInput         = document.getElementById('file-input');
     const stepUploadProduct = document.getElementById('step-upload-product');
 
+    const stepReason        = document.getElementById('step-reason');
+    const reasonSelect      = document.getElementById('reason-select');
+    const reasonOther       = document.getElementById('reason-other');
+    const reasonDesc        = document.getElementById('reason-description');
+    const validateReasonBtn = document.getElementById('validate-reason-btn');
+    const reasonResult      = document.getElementById('reason-result');
+
     const stepAnalysis = document.getElementById('step-analysis');
     const stepResult   = document.getElementById('step-result');
 
@@ -768,6 +793,88 @@
 
     // ── Bill upload ──
     uploadAreaBill.addEventListener('click', () => { if (!billUploaded) fileInputBill.click(); });
+    // Show reason selection when product photo is ready
+    reasonSelect.addEventListener('change', () => {
+      reasonOther.style.display = reasonSelect.value === 'other' ? 'block' : 'none';
+    });
+    // Enable validate button when description entered
+    reasonDesc.addEventListener('input', () => {
+      validateReasonBtn.disabled = !(reasonSelect.value && reasonDesc.value.trim().length > 0);
+    });
+    // Validate reason and photo
+    validateReasonBtn.addEventListener('click', async () => {
+      validateReasonBtn.textContent = 'Validating...';
+      validateReasonBtn.disabled = true;
+      try {
+        const payload = {
+          reason: reasonSelect.value,
+          customReason: reasonOther.value.trim(),
+          description: reasonDesc.value.trim(),
+          photo: base64Image
+        };
+        const res = await fetch('/api/validate-return', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        reasonResult.textContent = data.message;
+        reasonResult.style.color = data.match ? 'var(--green-600)' : 'var(--red-500)';
+        if (data.match) {
+          // Brief pause so user can read the success message
+          await new Promise(r => setTimeout(r, 1000));
+          // Proceed to analysis step
+          stepReason.classList.add('hidden');
+          startAnalysis();
+        } else {
+          validateReasonBtn.textContent = 'Validate Reason';
+          validateReasonBtn.disabled = false;
+        }
+      } catch (err) {
+        reasonResult.textContent = '❌ Error validating reason. Please try again.';
+        reasonResult.style.color = 'var(--red-500)';
+        validateReasonBtn.textContent = 'Validate Reason';
+        validateReasonBtn.disabled = false;
+      }
+    });
+
+    // After product photo upload, show reason step
+    const startAnalysis = async () => {
+       // Hide reason step, show analysis step
+       stepReason.classList.add('hidden');
+       stepAnalysis.classList.remove('hidden');
+       updateProgress(4); // progress to analysis step
+
+       // Build payload with image and reason data
+       const payload = { user_id: userId, product_id: productId };
+       if (base64Image) {
+         payload.image_base64 = base64Image;
+         payload.image_mime = imageMime;
+       }
+       // add reason information
+       payload.reason = reasonSelect.value;
+       payload.customReason = reasonOther.value.trim();
+       payload.description = reasonDesc.value.trim();
+
+       // Run analysis animation
+       await runAnalysisAnimation();
+
+       // Call backend to process return
+       try {
+         const data = await fetch('/api/process-return', {
+           method: 'POST',
+           headers: { 'Content-Type': 'application/json' },
+           body: JSON.stringify(payload)
+         }).then(r => r.json());
+         showResult(data);
+       } catch (e) {
+         alert('Error processing return. Please try again.');
+         // Return to reason step on failure
+         stepAnalysis.classList.add('hidden');
+         stepReason.classList.remove('hidden');
+         updateProgress(3);
+       }
+     };
 
     fileInputBill.addEventListener('change', (e) => {
       if (e.target.files && e.target.files.length > 0) {
@@ -792,7 +899,7 @@
         const res  = await fetch('/api/verify-bill', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ image_base64: base64Bill })
+          body: JSON.stringify({ image_base64: base64Bill, product_id: productId })
         });
         const data = await res.json();
         if (data.isValid) {
@@ -835,35 +942,10 @@
 
     // ── Submit Product ──
     submitBtn.addEventListener('click', async () => {
-      if (!photoUploaded) return;
-
-      stepUploadProduct.classList.add('hidden');
-      stepAnalysis.classList.remove('hidden');
-      updateProgress(3);
-
-      const payload = { user_id: userId, product_id: productId };
-      if (base64Image) {
-        payload.image_base64 = base64Image;
-        payload.image_mime   = imageMime;
-      }
-
-      const apiPromise = fetch('/api/process-return', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      }).then(r => r.json());
-
-      await runAnalysisAnimation();
-
-      try {
-        returnData = await apiPromise;
-        showResult(returnData);
-      } catch {
-        alert('Error processing return. Please try again.');
-        stepAnalysis.classList.add('hidden');
-        stepUploadProduct.classList.remove('hidden');
-        updateProgress(2);
-      }
+       if (!photoUploaded) return;
+       stepUploadProduct.classList.add('hidden');
+       stepReason.classList.remove('hidden');
+       updateProgress(3);
     });
 
     // ── Analysis animation ──

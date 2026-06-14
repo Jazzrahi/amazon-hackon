@@ -3,92 +3,324 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Analytics – Return Routing Decisions</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+  <title>Admin Dashboard – Second Life</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root {
       --amazon-navy: #232F3E;
-      --amazon-navy-light: #37475A;
+      --amazon-blue: #007185;
       --amazon-orange: #FF9900;
+      --red-500: #E31837;
+      --green-500: #00A86B;
+      --gray-100: #F8F9FA;
+      --gray-200: #E9ECEF;
+      --gray-800: #343A40;
       --white: #FFFFFF;
-      --radius: 8px;
+      --radius: 12px;
     }
     body {
       margin: 0;
-      font-family: 'Inter', -apple-system, sans-serif;
-      background: var(--white);
-      color: var(--amazon-navy);
+      font-family: 'Inter', sans-serif;
+      background: var(--gray-100);
+      color: var(--gray-800);
     }
     .header {
       background: var(--amazon-navy);
       color: var(--white);
-      padding: 12px 24px;
+      padding: 16px 32px;
       display: flex;
+      justify-content: space-between;
       align-items: center;
-      gap: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
     .header a {
       color: var(--white);
       text-decoration: none;
       font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .header-title {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
     }
     .container {
-      max-width: 1200px;
-      margin: 40px auto;
-      padding: 0 20px;
+      max-width: 1400px;
+      margin: 32px auto;
+      padding: 0 24px;
     }
-    h1 {
-      text-align: center;
-      font-weight: 800;
-      margin-bottom: 32px;
+    
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 24px;
     }
-    .chart-wrapper {
-      background: #f8f9fb;
-      padding: 24px;
+    
+    .card {
+      background: var(--white);
       border-radius: var(--radius);
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      padding: 24px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+      border: 1px solid var(--gray-200);
     }
+    
+    .card h3 {
+      margin: 0 0 20px 0;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--amazon-navy);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    /* Stats Row */
+    .stats-row {
+      grid-column: span 12;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+    }
+    .stat-card {
+      padding: 20px;
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 36px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+    .stat-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* specific cards */
+    .routing-chart { grid-column: span 8; }
+    .fraud-alerts { grid-column: span 4; }
+    .demand-heatmap { grid-column: span 6; }
+    .model-perf { grid-column: span 6; }
+
+    /* Fraud List */
+    .fraud-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .fraud-item {
+      padding: 12px;
+      border-radius: 8px;
+      background: rgba(227, 24, 55, 0.05);
+      border-left: 4px solid var(--red-500);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+    .fraud-item__details {
+      font-size: 13px;
+    }
+    .fraud-item__user {
+      font-weight: 700;
+      margin-bottom: 4px;
+      color: var(--red-500);
+    }
+    .fraud-item__reason {
+      color: #555;
+    }
+    .fraud-item__time {
+      font-size: 11px;
+      color: #888;
+      white-space: nowrap;
+    }
+    
+    /* Model Perf */
+    .perf-metrics {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .perf-metric {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--gray-200);
+    }
+    .perf-metric:last-child { border: none; }
+    .perf-label { font-size: 14px; font-weight: 600; }
+    .perf-val { font-size: 16px; font-weight: 800; color: var(--amazon-blue); }
+
   </style>
 </head>
 <body>
   <header class="header">
-    <a href="/" class="logo">← Home</a>
-    <span>Admin Analytics</span>
+    <div class="header-title">Second Life Admin</div>
+    <a href="/"><span>← Return to Storefront</span></a>
   </header>
+  
   <div class="container">
-    <h1>Return Routing Decisions</h1>
-    <div class="chart-wrapper">
-      <canvas id="routingChart" height="400"></canvas>
+    <div class="dashboard-grid">
+      
+      <!-- Top Stats -->
+      <div class="stats-row">
+        <div class="card stat-card">
+          <div class="stat-value" style="color: var(--amazon-blue);">2,451</div>
+          <div class="stat-label">Total Returns (30d)</div>
+        </div>
+        <div class="stat-value card stat-card">
+          <div class="stat-value" style="color: var(--green-500);">64%</div>
+          <div class="stat-label">Saved via 2nd Life</div>
+        </div>
+        <div class="stat-value card stat-card">
+          <div class="stat-value" style="color: var(--amazon-orange);">1,840 kg</div>
+          <div class="stat-label">CO₂ Emissions Prevented</div>
+        </div>
+        <div class="stat-value card stat-card">
+          <div class="stat-value" style="color: var(--red-500);">3.2%</div>
+          <div class="stat-label">Fraud Rejection Rate</div>
+        </div>
+      </div>
+
+      <!-- Main Routing Chart -->
+      <div class="card routing-chart">
+        <h3>🔄 Return Routing Decisions</h3>
+        <canvas id="routingChart" height="250"></canvas>
+      </div>
+
+      <!-- Active Fraud Flags -->
+      <div class="card fraud-alerts">
+        <h3>🚨 Active Fraud Flags</h3>
+        <ul class="fraud-list">
+          <li class="fraud-item">
+            <div class="fraud-item__details">
+              <div class="fraud-item__user">user_883</div>
+              <div class="fraud-item__reason">Image mismatch (Uploaded photo of dog for iPhone)</div>
+            </div>
+            <div class="fraud-item__time">2m ago</div>
+          </li>
+          <li class="fraud-item">
+            <div class="fraud-item__details">
+              <div class="fraud-item__user">user_102</div>
+              <div class="fraud-item__reason">Bill verification failed (Date outside 30d window)</div>
+            </div>
+            <div class="fraud-item__time">15m ago</div>
+          </li>
+          <li class="fraud-item">
+            <div class="fraud-item__details">
+              <div class="fraud-item__user">user_944</div>
+              <div class="fraud-item__reason">Condition dispute (Claimed 'Like New', AI scored 20/100)</div>
+            </div>
+            <div class="fraud-item__time">1h ago</div>
+          </li>
+          <li class="fraud-item">
+            <div class="fraud-item__details">
+              <div class="fraud-item__user">user_419</div>
+              <div class="fraud-item__reason">Trust score too low (Multiple recent rejections)</div>
+            </div>
+            <div class="fraud-item__time">3h ago</div>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Regional Demand Heatmap -->
+      <div class="card demand-heatmap">
+        <h3>📈 Resale Demand by Region</h3>
+        <canvas id="demandChart" height="200"></canvas>
+      </div>
+
+      <!-- AI Model Performance -->
+      <div class="card model-perf">
+        <h3>🤖 Vision AI Performance</h3>
+        <div class="perf-metrics">
+          <div class="perf-metric">
+            <span class="perf-label">Model Engine</span>
+            <span class="perf-val">Gemini 2.0 Flash</span>
+          </div>
+          <div class="perf-metric">
+            <span class="perf-label">Avg. Latency</span>
+            <span class="perf-val">3.4 seconds</span>
+          </div>
+          <div class="perf-metric">
+            <span class="perf-label">Classification Accuracy (Last 1k)</span>
+            <span class="perf-val">94.8%</span>
+          </div>
+          <div class="perf-metric">
+            <span class="perf-label">False Positive Rate (Fraud)</span>
+            <span class="perf-val" style="color:var(--green-500)">1.2%</span>
+          </div>
+          <div class="perf-metric">
+            <span class="perf-label">Condition Grading Agreement</span>
+            <span class="perf-val">89.5%</span>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <script>
-    const ctx = document.getElementById('routingChart').getContext('2d');
-    const data = {
-      labels: ['Standard Returns', 'Green Credits', 'P2P Resale', 'Exchanges', 'E‑Waste Recycle', 'Donations', 'Fraud Rejected'],
-      datasets: [{
-        label: 'Decisions (last 30 days)',
-        data: [124, 58, 32, 21, 9, 15, 5], // made‑up realistic numbers
-        backgroundColor: [
-          '#4A90E2', '#7ED321', '#F5A623', '#D0021B', '#B8E986', '#9013FE', '#FF5A5F'
-        ],
-        borderColor: '#fff',
-        borderWidth: 1,
-        borderRadius: 4,
-      }]
-    };
-    new Chart(ctx, {
+    // Routing Chart
+    const ctxRouting = document.getElementById('routingChart').getContext('2d');
+    new Chart(ctxRouting, {
       type: 'bar',
-      data: data,
+      data: {
+        labels: ['Keep (Tier 1)', 'Resale (Tier 2)', 'Standard (Tier 3)', 'Fraud Reject'],
+        datasets: [{
+          label: 'Returns (Last 30 Days)',
+          data: [540, 890, 940, 81],
+          backgroundColor: ['#00A86B', '#007185', '#37475A', '#E31837'],
+          borderRadius: 4,
+        }]
+      },
       options: {
         responsive: true,
-        plugins: {
-          legend: { display: false },
-          tooltip: { mode: 'index', intersect: false }
-        },
+        plugins: { legend: { display: false } },
         scales: {
-          y: { beginAtZero: true, title: { display: true, text: 'Count' } },
-          x: { title: { display: true, text: 'Routing Decision' } }
+          y: { beginAtZero: true, grid: { color: '#f0f0f0' } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+
+    // Demand Chart
+    const ctxDemand = document.getElementById('demandChart').getContext('2d');
+    new Chart(ctxDemand, {
+      type: 'radar',
+      data: {
+        labels: ['Mumbai', 'Delhi', 'Bangalore', 'Hyderabad', 'Chennai', 'Pune'],
+        datasets: [{
+          label: 'Electronics',
+          data: [85, 60, 90, 75, 65, 70],
+          backgroundColor: 'rgba(0, 113, 133, 0.2)',
+          borderColor: '#007185',
+          pointBackgroundColor: '#007185',
+        }, {
+          label: 'Clothing',
+          data: [95, 80, 85, 70, 75, 80],
+          backgroundColor: 'rgba(255, 153, 0, 0.2)',
+          borderColor: '#FF9900',
+          pointBackgroundColor: '#FF9900',
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { position: 'bottom' } },
+        scales: {
+          r: {
+            angleLines: { color: '#f0f0f0' },
+            grid: { color: '#f0f0f0' },
+            pointLabels: { font: { size: 13, family: 'Inter' } },
+            ticks: { display: false }
+          }
         }
       }
     });

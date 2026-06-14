@@ -589,6 +589,126 @@
       </div>
     </div>
 
+    <!-- Gamification: Badges & Achievements -->
+    <style>
+      .badges-section {
+        background: var(--white);
+        border: 1px solid var(--gray-200);
+        border-radius: var(--radius);
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      }
+      .badges-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+      .badges-title {
+        font-size: 16px;
+        font-weight: 800;
+        color: var(--navy-700);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .badges-progress {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--gray-600);
+      }
+      .badges-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+      }
+      .badge-card {
+        text-align: center;
+        padding: 16px;
+        border: 1px solid var(--gray-200);
+        border-radius: 12px;
+        position: relative;
+        transition: transform 0.2s;
+      }
+      .badge-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      }
+      .badge-icon {
+        font-size: 42px;
+        margin-bottom: 12px;
+        filter: grayscale(100%) opacity(0.5);
+        transition: all 0.3s;
+      }
+      .badge-card.unlocked .badge-icon {
+        filter: grayscale(0%) opacity(1);
+        transform: scale(1.1);
+      }
+      .badge-name {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--navy-700);
+        margin-bottom: 4px;
+      }
+      .badge-desc {
+        font-size: 11px;
+        color: var(--gray-600);
+        line-height: 1.4;
+      }
+      .badge-status {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        background: var(--green-500);
+        color: white;
+        font-size: 10px;
+        font-weight: 800;
+        padding: 4px 8px;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        display: none;
+      }
+      .badge-card.unlocked .badge-status {
+        display: block;
+      }
+      @media (max-width: 768px) {
+        .badges-grid { grid-template-columns: repeat(2, 1fr); }
+      }
+    </style>
+
+    <div class="badges-section">
+      <div class="badges-header">
+        <div class="badges-title">🎯 Achievements</div>
+        <div class="badges-progress">3 of 8 Unlocked</div>
+      </div>
+      <div class="badges-grid">
+        <div class="badge-card unlocked">
+          <div class="badge-status">UNLOCKED</div>
+          <div class="badge-icon">🌱</div>
+          <div class="badge-name">First Seed</div>
+          <div class="badge-desc">Earn your first green credit</div>
+        </div>
+        <div class="badge-card unlocked">
+          <div class="badge-status">UNLOCKED</div>
+          <div class="badge-icon">📦</div>
+          <div class="badge-name">Box Saver</div>
+          <div class="badge-desc">Keep an item instead of returning</div>
+        </div>
+        <div class="badge-card unlocked">
+          <div class="badge-status">UNLOCKED</div>
+          <div class="badge-icon">💯</div>
+          <div class="badge-name">Honest Grade</div>
+          <div class="badge-desc">Provide an accurate return reason</div>
+        </div>
+        <div class="badge-card">
+          <div class="badge-icon">♻️</div>
+          <div class="badge-name">Circular Hero</div>
+          <div class="badge-desc">Buy 5 items from Second Life</div>
+        </div>
+      </div>
+    </div>
+
     <!-- Two Column: Transactions + Redeem -->
     <div class="two-col">
 

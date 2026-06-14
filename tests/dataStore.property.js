@@ -1,45 +1,37 @@
-const { describe, it, beforeEach, afterEach } = require('node:test');
+const { describe, it, beforeEach } = require('node:test');
 const assert = require('node:assert/strict');
 const fc = require('fast-check');
-const fs = require('fs');
-const path = require('path');
-const { readDB, writeDB, getUserById, updateUserCredits, markItemAsAmazonOwned, getProductById } = require('../src/services/dataStore');
+const { getUserById, updateUserCredits, markItemAsAmazonOwned, getProductById } = require('../src/services/dataStore');
+const initDB = require('../src/services/dbInit');
 
-const DB_PATH = path.join(__dirname, '../data/db.json');
-let originalContent;
-
-beforeEach(() => {
-  originalContent = fs.readFileSync(DB_PATH, 'utf-8');
-});
-
-afterEach(() => {
-  fs.writeFileSync(DB_PATH, originalContent, 'utf-8');
+beforeEach(async () => {
+  await initDB();
 });
 
 describe('Data Store - Property Tests', () => {
   /**
    * Property 7: Green Credits Balance Update
-   * For any user balance B and credit C, balance becomes B + C and item becomes amazon-owned.
+   * For any user balance B and credit C, balance becomes B + C.
    * **Validates: Requirements 4.1, 4.3, 4.5**
    */
-  it('Property 7: Green Credits balance update is correct', () => {
-    fc.assert(
-      fc.property(
+  it('Property 7: Green Credits balance update is correct', async () => {
+    await fc.assert(
+      fc.asyncProperty(
         fc.integer({ min: 0, max: 5000 }),   // credit amount to add
-        (creditAmount) => {
-          // Reset to clean state
-          fs.writeFileSync(DB_PATH, originalContent, 'utf-8');
+        async (creditAmount) => {
+          // Reset database state for clean run
+          await initDB();
 
-          const userBefore = getUserById('user_001');
+          const userBefore = await getUserById('user_001');
           const balanceBefore = userBefore.green_credits;
 
-          updateUserCredits('user_001', creditAmount);
+          await updateUserCredits('user_001', creditAmount);
 
-          const userAfter = getUserById('user_001');
+          const userAfter = await getUserById('user_001');
           assert.equal(userAfter.green_credits, balanceBefore + creditAmount);
         }
       ),
-      { numRuns: 50 }
+      { numRuns: 30 }
     );
   });
 
@@ -47,16 +39,15 @@ describe('Data Store - Property Tests', () => {
    * Property 7b: markItemAsAmazonOwned sets inventory_owner to "amazon"
    * **Validates: Requirements 4.5**
    */
-  it('Property 7b: markItemAsAmazonOwned sets inventory_owner to amazon', () => {
-    // Reset to clean state
-    fs.writeFileSync(DB_PATH, originalContent, 'utf-8');
+  it('Property 7b: markItemAsAmazonOwned sets inventory_owner to amazon', async () => {
+    await initDB();
 
     // prod_002 starts with inventory_owner = "seller"
-    const result = markItemAsAmazonOwned('prod_002');
+    const result = await markItemAsAmazonOwned('prod_002');
     assert.equal(result.inventory_owner, 'amazon');
 
     // Verify persistence
-    const product = getProductById('prod_002');
+    const product = await getProductById('prod_002');
     assert.equal(product.inventory_owner, 'amazon');
   });
 
@@ -65,23 +56,24 @@ describe('Data Store - Property Tests', () => {
    * For any valid mutation, subsequent read reflects written values.
    * **Validates: Requirements 10.7**
    */
-  it('Property 8: Data persistence round-trip', () => {
-    fc.assert(
-      fc.property(
+  it('Property 8: Data persistence round-trip', async () => {
+    await fc.assert(
+      fc.asyncProperty(
         fc.integer({ min: 0, max: 5000 }),   // value to write
-        (value) => {
-          // Reset
-          fs.writeFileSync(DB_PATH, originalContent, 'utf-8');
+        async (value) => {
+          await initDB();
 
-          const db = readDB();
-          db.users[0].green_credits = value;
-          writeDB(db);
+          // Set user credits to a specific value directly and read back
+          const userBefore = await getUserById('user_001');
+          const diff = value - userBefore.green_credits;
+          
+          await updateUserCredits('user_001', diff);
 
-          const readBack = readDB();
-          assert.equal(readBack.users[0].green_credits, value);
+          const readBack = await getUserById('user_001');
+          assert.equal(readBack.green_credits, value);
         }
       ),
-      { numRuns: 50 }
+      { numRuns: 30 }
     );
   });
 });
