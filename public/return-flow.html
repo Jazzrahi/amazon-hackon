@@ -674,7 +674,7 @@
             <div class="secondary-opts">
               <div class="secondary-opts__label">Other options</div>
               <button class="btn btn--outline" id="keep-to-secondlife-btn" onclick="showSecondLifeFromKeep()">List on Second Life instead (100% refund when sold)</button>
-              <button class="btn btn--outline" style="margin-top:8px" onclick="location.href='orders.html'">Standard Return</button>
+              <button class="btn btn--outline" style="margin-top:8px" onclick="acceptStandardReturn()">Standard Return</button>
             </div>
           </div>
         </div>
@@ -728,7 +728,7 @@
               A prepaid shipping label has been sent to your registered email.
             </p>
             <div class="info-box" id="standard-info"></div>
-            <button class="btn btn--primary" onclick="location.href='orders.html'">View Return Instructions</button>
+            <button class="btn btn--primary" id="standard-accept-btn" onclick="acceptStandardReturn()">View Return Instructions</button>
           </div>
         </div>
       </div>
@@ -755,7 +755,7 @@
 
   <script>
     const params = new URLSearchParams(window.location.search);
-    const userId = params.get('user_id') || 'user_001';
+    const userId = params.get('user_id') || localStorage.getItem('active_user') || 'user_001';
     const productId = params.get('product_id') || 'prod_001';
 
     let returnData = null;
@@ -969,6 +969,7 @@
 
     // ── Show Result ──
     function showResult(data) {
+      returnData = data;
       stepAnalysis.classList.add('hidden');
       stepResult.classList.remove('hidden');
       updateProgress(4);
@@ -1109,6 +1110,25 @@
       location.href = 'second-life.html?status=listed';
     }
 
+    async function acceptStandardReturn() {
+      const btn = document.getElementById('standard-accept-btn');
+      if (btn) {
+        btn.textContent = 'Processing…';
+        btn.disabled = true;
+      }
+      try {
+        await fetch('/api/accept-standard-return', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: userId,
+            product_id: productId
+          })
+        });
+      } catch {}
+      location.href = 'orders.html?status=returned';
+    }
+
     // From Tier 1 card — "List on Second Life instead"
     function showSecondLifeFromKeep() {
       document.getElementById('result-keep_item').classList.remove('visible');
@@ -1137,7 +1157,7 @@
     function updateGlobalCartCount() {
       const cc = document.getElementById('nav-cart-count');
       if (cc) {
-        const cart = JSON.parse(localStorage.getItem('cart')) || [];
+        const cart = JSON.parse(localStorage.getItem('cart_' + (localStorage.getItem('active_user') || 'user_001'))) || [];
         cc.textContent = cart.length;
       }
     }

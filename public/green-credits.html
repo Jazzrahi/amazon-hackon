@@ -715,47 +715,8 @@
       <!-- Transaction History -->
       <div class="section-card">
         <div class="section-card__header">📝 Credit History</div>
-        <div id="transactions">
-          <div class="transaction">
-            <div class="transaction__icon transaction__icon--earn">🌱</div>
-            <div class="transaction__info">
-              <div class="transaction__desc">Kept Cotton Kurta — Green Credit</div>
-              <div class="transaction__date">Jun 10, 2026</div>
-            </div>
-            <div class="transaction__amount transaction__amount--earn">+₹650</div>
-          </div>
-          <div class="transaction">
-            <div class="transaction__icon transaction__icon--earn">♻️</div>
-            <div class="transaction__info">
-              <div class="transaction__desc">Recycled USB Cable — Eco Reward</div>
-              <div class="transaction__date">Jun 7, 2026</div>
-            </div>
-            <div class="transaction__amount transaction__amount--earn">+₹30</div>
-          </div>
-          <div class="transaction">
-            <div class="transaction__icon transaction__icon--spend">🛒</div>
-            <div class="transaction__info">
-              <div class="transaction__desc">Used credits on Headphones purchase</div>
-              <div class="transaction__date">Jun 3, 2026</div>
-            </div>
-            <div class="transaction__amount transaction__amount--spend">-₹200</div>
-          </div>
-          <div class="transaction">
-            <div class="transaction__icon transaction__icon--earn">💜</div>
-            <div class="transaction__info">
-              <div class="transaction__desc">Donated Anklet to Goonj Foundation</div>
-              <div class="transaction__date">May 28, 2026</div>
-            </div>
-            <div class="transaction__amount transaction__amount--earn">+₹50</div>
-          </div>
-          <div class="transaction">
-            <div class="transaction__icon transaction__icon--earn">🌱</div>
-            <div class="transaction__info">
-              <div class="transaction__desc">Welcome Bonus — First Eco Action</div>
-              <div class="transaction__date">May 20, 2026</div>
-            </div>
-            <div class="transaction__amount transaction__amount--earn">+₹100</div>
-          </div>
+        <div id="transactions-list">
+          <div style="padding: 24px; text-align: center; color: var(--gray-400); font-size: 13px;">Loading activity…</div>
         </div>
       </div>
 
@@ -797,30 +758,8 @@
     <!-- Leaderboard -->
     <div class="leaderboard">
       <div class="section-card__header">🏆 Eco Leaderboard — Your City</div>
-      <div class="leaderboard__row">
-        <div class="leaderboard__rank leaderboard__rank--gold">1</div>
-        <div class="leaderboard__name">🥇 Rahul V.</div>
-        <div class="leaderboard__score">₹1,200</div>
-      </div>
-      <div class="leaderboard__row">
-        <div class="leaderboard__rank leaderboard__rank--silver">2</div>
-        <div class="leaderboard__name">🥈 Sneha G.</div>
-        <div class="leaderboard__score">₹800</div>
-      </div>
-      <div class="leaderboard__row leaderboard__row--you" id="leaderboard-you">
-        <div class="leaderboard__rank leaderboard__rank--bronze">3</div>
-        <div class="leaderboard__name" id="lb-name">🥉 You</div>
-        <div class="leaderboard__score" id="lb-score">₹—</div>
-      </div>
-      <div class="leaderboard__row">
-        <div class="leaderboard__rank">4</div>
-        <div class="leaderboard__name">Amit P.</div>
-        <div class="leaderboard__score">₹300</div>
-      </div>
-      <div class="leaderboard__row">
-        <div class="leaderboard__rank">5</div>
-        <div class="leaderboard__name">Vikram S.</div>
-        <div class="leaderboard__score">₹100</div>
+      <div id="leaderboard-container">
+        <div style="padding: 20px; text-align: center; color: var(--gray-400); font-size: 13px;">Loading leaderboard...</div>
       </div>
     </div>
 
@@ -834,15 +773,19 @@
     (function () {
       'use strict';
 
-      let userId = 'user_001';
+      let userId = localStorage.getItem('active_user') || 'user_001';
 
       // ── User switcher ──
       document.querySelectorAll('.user-btn').forEach(btn => {
+        if (btn.dataset.user === userId) btn.classList.add('active');
+        else btn.classList.remove('active');
         btn.addEventListener('click', () => {
           document.querySelectorAll('.user-btn').forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
           userId = btn.dataset.user;
+          localStorage.setItem('active_user', userId);
           init();
+          if (typeof updateGlobalCartCount === 'function') updateGlobalCartCount();
         });
       });
 
@@ -885,9 +828,64 @@
             document.getElementById('eco-bar').style.width = level.pct + '%';
           }, 300);
 
-          // Leaderboard
-          document.getElementById('lb-name').textContent = `🥉 ${user.name}`;
-          document.getElementById('lb-score').textContent = `₹${user.green_credits}`;
+          // Live Leaderboard
+          try {
+              const lbRes = await fetch('/api/leaderboard');
+              const topUsers = await lbRes.json();
+              const lbContainer = document.getElementById('leaderboard-container');
+              if (lbContainer) {
+                  const medals = ['🥇', '🥈', '🥉'];
+                  const classes = ['leaderboard__rank--gold', 'leaderboard__rank--silver', 'leaderboard__rank--bronze'];
+                  
+                  lbContainer.innerHTML = topUsers.map((tu, idx) => {
+                      const isYou = tu.id === userId;
+                      const rankClass = classes[idx] || '';
+                      const medalOrName = medals[idx] ? `${medals[idx]} ${tu.name.split(' ')[0]}` : tu.name.split(' ')[0];
+                      
+                      return `
+                      <div class="leaderboard__row ${isYou ? 'leaderboard__row--you' : ''}">
+                        <div class="leaderboard__rank ${rankClass}">${idx + 1}</div>
+                        <div class="leaderboard__name">${medalOrName} ${isYou ? '(You)' : ''}</div>
+                        <div class="leaderboard__score">₹${tu.green_credits.toLocaleString('en-IN')}</div>
+                      </div>
+                      `;
+                  }).join('');
+              }
+          } catch(e) {
+              console.error('Failed to load leaderboard', e);
+          }
+
+          // Live Transaction History
+          try {
+            const txRes = await fetch(`/api/transactions/${userId}`);
+            const txData = await txRes.json();
+            const txContainer = document.getElementById('transactions-list');
+            if (txContainer) {
+              if (!txData.transactions || txData.transactions.length === 0) {
+                txContainer.innerHTML = `<div style="padding:24px;text-align:center;color:var(--gray-400);font-size:13px;">No activity yet — start returning smart to earn credits! 🌱</div>`;
+              } else {
+                const typeToClass = { earn: 'earn', spend: 'spend', pending: 'earn', neutral: 'spend' };
+                const amountStyle = {
+                  earn: 'color:var(--green-500)',
+                  pending: 'color:var(--orange-500)',
+                  spend: 'color:var(--orange-500)',
+                  neutral: 'color:var(--gray-400)'
+                };
+                txContainer.innerHTML = txData.transactions.map(tx => `
+                  <div class="transaction">
+                    <div class="transaction__icon transaction__icon--${typeToClass[tx.type] || 'earn'}">${tx.icon}</div>
+                    <div class="transaction__info">
+                      <div class="transaction__desc">${tx.desc}</div>
+                      <div class="transaction__date">${tx.date}</div>
+                    </div>
+                    <div class="transaction__amount" style="${amountStyle[tx.type] || ''};font-size:13px;font-weight:800;flex-shrink:0;">${tx.amount}</div>
+                  </div>
+                `).join('');
+              }
+            }
+          } catch(e) {
+            console.error('Failed to load transactions', e);
+          }
 
           // Load stats
           const statsRes = await fetch('/api/sustainability-stats');
@@ -912,7 +910,7 @@
   function updateGlobalCartCount() {
     const cc = document.getElementById('nav-cart-count');
     if (cc) {
-      const cart = JSON.parse(localStorage.getItem('cart')) || [];
+      const cart = JSON.parse(localStorage.getItem('cart_' + (localStorage.getItem('active_user') || 'user_001'))) || [];
       cc.textContent = cart.length;
     }
   }

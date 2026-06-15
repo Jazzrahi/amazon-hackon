@@ -231,21 +231,21 @@
     function updateGlobalCartCount() {
       const cc = document.getElementById('nav-cart-count');
       if (cc) {
-        const cart = JSON.parse(localStorage.getItem('cart')) || [];
+        const cart = JSON.parse(localStorage.getItem('cart_' + (localStorage.getItem('active_user') || 'user_001'))) || [];
         cc.textContent = cart.length;
       }
     }
 
     function removeItem(index) {
-      let cart = JSON.parse(localStorage.getItem('cart')) || [];
+      let cart = JSON.parse(localStorage.getItem('cart_' + (localStorage.getItem('active_user') || 'user_001'))) || [];
       cart.splice(index, 1);
-      localStorage.setItem('cart', JSON.stringify(cart));
+      localStorage.setItem('cart_' + (localStorage.getItem('active_user') || 'user_001'), JSON.stringify(cart));
       renderCart();
     }
 
     function renderCart() {
       updateGlobalCartCount();
-      const cart = JSON.parse(localStorage.getItem('cart')) || [];
+      const cart = JSON.parse(localStorage.getItem('cart_' + (localStorage.getItem('active_user') || 'user_001'))) || [];
       const container = document.getElementById('cart-items');
       const bottomTotal = document.getElementById('cart-total-bottom');
       const sidebar = document.getElementById('cart-sidebar');

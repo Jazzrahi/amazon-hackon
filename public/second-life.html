@@ -893,9 +893,9 @@
   <div class="subnav">
     <div class="subnav__inner">
       <span class="subnav__label" style="color: rgba(255,255,255,0.5); font-size: 11px; font-weight: 600; margin-right: 4px;">👤 Demo User:</span>
-      <button class="user-btn active" data-user="user_001">Priya (Delhi)</button>
-      <button class="user-btn" data-user="user_002">Rahul (Mumbai)</button>
-      <button class="user-btn" data-user="user_005">Vikram (Delhi)</button>
+      <button class="user-btn active" data-user="user_001">Priya (Mumbai)</button>
+      <button class="user-btn" data-user="user_002">Rahul (Delhi)</button>
+      <button class="user-btn" data-user="user_003">Amit (Mumbai)</button>
     </div>
   </div>
 
@@ -990,15 +990,19 @@
 
       let allItems = [];
       let activeFilter = 'recommended';
-      let currentUser = 'user_001';
+      let currentUser = localStorage.getItem('active_user') || 'user_001';
 
       // ── User switcher ──
       document.querySelectorAll('.user-btn').forEach(btn => {
+        if (btn.dataset.user === currentUser) btn.classList.add('active');
+        else btn.classList.remove('active');
         btn.addEventListener('click', () => {
           document.querySelectorAll('.user-btn').forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
           currentUser = btn.dataset.user;
+          localStorage.setItem('active_user', currentUser);
           loadItems(); // Reload items for the new user's region
+          if (typeof updateGlobalCartCount === 'function') updateGlobalCartCount();
         });
       });
 
@@ -1234,9 +1238,9 @@
         
         // Add item to localStorage cart
         if (window.currentModalItem) {
-          let cart = JSON.parse(localStorage.getItem('cart')) || [];
+          let cart = JSON.parse(localStorage.getItem('cart_' + (localStorage.getItem('active_user') || 'user_001'))) || [];
           cart.push(window.currentModalItem);
-          localStorage.setItem('cart', JSON.stringify(cart));
+          localStorage.setItem('cart_' + (localStorage.getItem('active_user') || 'user_001'), JSON.stringify(cart));
           if (typeof updateGlobalCartCount === 'function') updateGlobalCartCount();
           window.dispatchEvent(new Event('storage'));
         }
@@ -1297,12 +1301,14 @@
       // ── Load items ──
       async function loadItems() {
         try {
-          const userBtn = document.querySelector('.user-btn.active');
-          const userRegion = userBtn ? (userBtn.textContent.includes('Delhi') ? 'Delhi' : 'Mumbai') : 'Delhi';
+          // Always look up actual region from API — never rely on button text
+          const userRes = await fetch(`/api/user/${currentUser}`);
+          const userData = await userRes.json();
+          const userRegion = userData.region || 'Mumbai';
           const locText = document.getElementById('user-location-text');
           if (locText) locText.textContent = userRegion.toUpperCase();
 
-          const res = await fetch(`/api/second-life?region=${userRegion}`);
+          const res = await fetch(`/api/second-life?region=${encodeURIComponent(userRegion)}`);
           if (!res.ok) throw new Error(`HTTP ${res.status}`);
           allItems = await res.json();
 
@@ -1358,7 +1364,7 @@
   function updateGlobalCartCount() {
     const cc = document.getElementById('nav-cart-count');
     if (cc) {
-      const cart = JSON.parse(localStorage.getItem('cart')) || [];
+      const cart = JSON.parse(localStorage.getItem('cart_' + (localStorage.getItem('active_user') || 'user_001'))) || [];
       cc.textContent = cart.length;
     }
   }

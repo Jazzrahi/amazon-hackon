@@ -1,48 +1,78 @@
-/**
- * Reverse Logistics Service
- * Matches sellers to delivery routes for item collection.
- */
+const turf = require('@turf/turf');
+
+// Approximate coordinates for areas in the demo database
+const AREA_COORDS = {
+  "Andheri West": [72.8333, 19.1334],
+  "Bandra East": [72.8400, 19.0596],
+  "Connaught Place": [77.2167, 28.6315],
+  "Rohini": [77.1140, 28.7366],
+  "Koramangala": [77.6200, 12.9345],
+  "Whitefield": [77.7499, 12.9698]
+};
 
 /**
  * Schedules pickup by matching seller's area to an available route.
- * Implements a simulated Travelling Salesperson Problem (TSP) heuristic 
- * to find the most efficient active delivery route for a reverse pickup.
+ * Uses Turf.js to calculate true geospatial distance and routing.
  * 
  * @param {string} sellerArea - Seller's neighborhood area
  * @param {Array} deliveryRoutes - Available routes from db.json
  * @returns {Object} Pickup scheduling details and eco-savings
  */
 function schedulePickup(sellerArea, deliveryRoutes) {
-  // 1. Find routes that service this area or nearby zones
-  // In a real TSP, we'd calculate lat/long distances. Here we simulate it.
-  const nearestRoutes = deliveryRoutes
-    .filter((route) => route.area === sellerArea)
-    // Simulate sorting by proximity/efficiency
-    .sort((a, b) => (a.active_deliveries || 0) - (b.active_deliveries || 0));
+  const sellerCoords = AREA_COORDS[sellerArea];
+  if (!sellerCoords) {
+    return {
+      scheduled: false,
+      message: 'Pickup unavailable: Area coordinates not found.',
+      carbonSavingsKg: 0
+    };
+  }
 
-  if (nearestRoutes.length > 0) {
-    // 2. Assign to the most optimal route (fewest active deliveries to ensure capacity)
-    const optimalRoute = nearestRoutes[0];
-    const firstWindow = optimalRoute.time_windows[0];
+  const sellerPoint = turf.point(sellerCoords);
+  let bestRoute = null;
+  let minDistance = Infinity;
+
+  // Find the nearest active delivery route
+  for (const route of deliveryRoutes) {
+    const routeCoords = AREA_COORDS[route.area];
+    if (routeCoords) {
+      const routePoint = turf.point(routeCoords);
+      // Distance in kilometers
+      const dist = turf.distance(sellerPoint, routePoint, { units: 'kilometers' });
+      
+      // If within a reasonable city radius (e.g., 20km)
+      if (dist < 20 && dist < minDistance) {
+        minDistance = dist;
+        bestRoute = route;
+      }
+    }
+  }
+
+  if (bestRoute) {
+    const firstWindow = bestRoute.time_windows[0];
     
-    // 3. Calculate carbon savings of combining delivery + pickup
-    // Assuming a dedicated trip costs 2.5kg CO2, combining saves ~80%
-    const combinedTripSavings = 2.0;
+    // Calculate realistic carbon savings
+    // Assume a dedicated standard trip is `distance * 0.2 kg CO2/km`
+    // Piggybacking on an existing route saves 80% of that cost
+    // Add a minimum floor so same-area matches still show some savings
+    const distForSavings = Math.max(minDistance, 5); // 5km base trip assumed
+    const dedicatedTripCarbon = distForSavings * 0.2; 
+    const combinedTripSavings = Number((dedicatedTripCarbon * 0.8).toFixed(1));
 
     return {
       scheduled: true,
       pickupDay: firstWindow.day,
       timeWindow: firstWindow.slot,
-      driverName: optimalRoute.driver_name,
-      optimizationNote: `Assigned to ${optimalRoute.driver_name}'s existing route to minimize carbon footprint.`,
+      driverName: bestRoute.driver_name,
+      optimizationNote: `Assigned to ${bestRoute.driver_name}'s route (Distance: ${minDistance.toFixed(1)} km) to minimize carbon footprint.`,
       carbonSavingsKg: combinedTripSavings
     };
   }
 
-  // Fallback if no local route is active
+  // Fallback if no route within 20km
   return {
     scheduled: false,
-    message: 'Pickup scheduling is unavailable for your area right now. Please drop off at the nearest Amazon Hub.',
+    message: 'Pickup scheduling is unavailable. No active delivery routes within 20km. Please drop off at the nearest Amazon Hub.',
     carbonSavingsKg: 0
   };
 }

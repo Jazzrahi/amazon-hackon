@@ -52,7 +52,7 @@ async function getAllProducts() {
 
 async function getSecondLifeItems() {
   const db = await getDB();
-  const products = await db.all(`SELECT * FROM products WHERE inventory_owner = 'amazon'`);
+  const products = await db.all(`SELECT * FROM products WHERE inventory_owner = 'amazon' OR inventory_owner LIKE 'seller_%'`);
   products.forEach(p => {
       p.high_return_risk = !!p.high_return_risk;
       p.graded = !!p.graded;
@@ -62,7 +62,7 @@ async function getSecondLifeItems() {
 
 async function getOrdersByUserId(userId) {
   const db = await getDB();
-  const orders = await db.all(`SELECT * FROM orders WHERE user_id = ? AND date(order_date) >= date('now', '-30 days')`, [userId]);
+  const orders = await db.all(`SELECT * FROM orders WHERE user_id = ? AND date(order_date) >= date('now', '-30 days') ORDER BY date(order_date) DESC`, [userId]);
   orders.forEach(o => o.returned = !!o.returned);
   return orders;
 }
@@ -101,9 +101,15 @@ async function markOrderReturned(orderId, returnType) {
     await db.run(`UPDATE orders SET returned = 1, status = ? WHERE order_id = ?`, [returnType, orderId]);
 }
 
-async function updateProductResale(productId, grade, resalePrice) {
+async function updateProductResale(productId, grade, resalePrice, userId) {
     const db = await getDB();
-    await db.run(`UPDATE products SET inventory_owner = 'amazon', graded = 1, grade = ?, resale_price = ? WHERE id = ?`, [grade, resalePrice, productId]);
+    const owner = userId ? `seller_${userId}` : 'amazon';
+    await db.run(`UPDATE products SET inventory_owner = ?, graded = 1, grade = ?, resale_price = ? WHERE id = ?`, [owner, grade, resalePrice, productId]);
+}
+
+async function getTopUsers(limit = 5) {
+    const db = await getDB();
+    return db.all(`SELECT id, name, green_credits, area, region FROM users ORDER BY green_credits DESC LIMIT ?`, [limit]);
 }
 
 async function createOrder(orderId, userId, productId, orderDate, status) {
@@ -127,6 +133,22 @@ async function getAllUsers() {
 
 async function buySecondLifeItem(userId, productId) {
     const db = await getDB();
+    
+    const item = await getProductById(productId);
+    let deliveryType = 'delivered';
+
+    if (item && item.inventory_owner && item.inventory_owner.startsWith('seller_')) {
+        const sellerId = item.inventory_owner.replace('seller_', '');
+        if (sellerId !== userId) {
+            const seller = await getUserById(sellerId);
+            const buyer = await getUserById(userId);
+            if (seller && buyer && seller.area === buyer.area) {
+                deliveryType = 'p2p_local_delivery';
+                await updateUserCredits(sellerId, 100);
+            }
+        }
+    }
+
     // Set inventory_owner to user to remove from Amazon stocks
     await db.run(`UPDATE products SET inventory_owner = ? WHERE id = ?`, [userId, productId]);
     
@@ -135,7 +157,7 @@ async function buySecondLifeItem(userId, productId) {
     const orderDate = new Date().toISOString().split('T')[0];
     await db.run(
         `INSERT INTO orders (order_id, user_id, product_id, order_date, status, returned) VALUES (?, ?, ?, ?, ?, 0)`,
-        [orderId, userId, productId, orderDate, 'processing']
+        [orderId, userId, productId, orderDate, deliveryType]
     );
     return getProductById(productId);
 }
@@ -153,15 +175,31 @@ async function checkoutCart(userId, items, creditsUsed) {
     
     for (const item of items) {
         const orderId = 'ord_' + Math.floor(Math.random() * 1000000);
+        let deliveryType = 'delivered';
         
-        // If it's a second life item currently owned by amazon, transfer ownership
-        if (item.inventory_owner === 'amazon') {
+        // If it's a second life item currently owned by amazon or seller, transfer ownership
+        if (item.inventory_owner === 'amazon' || (item.inventory_owner && item.inventory_owner.startsWith('seller_'))) {
+            
+            // P2P Check
+            if (item.inventory_owner && item.inventory_owner.startsWith('seller_')) {
+                const sellerId = item.inventory_owner.replace('seller_', '');
+                if (sellerId !== userId) {
+                    const seller = await getUserById(sellerId);
+                    const buyer = await getUserById(userId);
+                    if (seller && buyer && seller.area === buyer.area) {
+                        deliveryType = 'p2p_local_delivery';
+                        // Award seller 100 green credits for local dropoff
+                        await updateUserCredits(sellerId, 100);
+                    }
+                }
+            }
+
             await db.run(`UPDATE products SET inventory_owner = ? WHERE id = ?`, [userId, item.id]);
         }
         
         await db.run(
             `INSERT INTO orders (order_id, user_id, product_id, order_date, status, returned) VALUES (?, ?, ?, ?, ?, 0)`,
-            [orderId, userId, item.id, orderDate, 'processing']
+            [orderId, userId, item.id, orderDate, deliveryType]
         );
         
         results.push(await getProductById(item.id));
@@ -189,5 +227,6 @@ module.exports = {
   getAllOrders,
   getAllUsers,
   buySecondLifeItem,
-  checkoutCart
+  checkoutCart,
+  getTopUsers
 };

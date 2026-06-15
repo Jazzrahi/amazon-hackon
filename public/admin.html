@@ -6,6 +6,7 @@
   <title>Admin Dashboard – Second Life</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
   <style>
     :root {
       --amazon-navy: #232F3E;
@@ -322,6 +323,27 @@
             ticks: { display: false }
           }
         }
+      }
+    });
+
+    // WebSockets for Real-Time Fraud Alerts
+    const socket = io();
+    socket.on('fraudAlert', (data) => {
+      const list = document.querySelector('.fraud-list');
+      const li = document.createElement('li');
+      li.className = 'fraud-item';
+      li.innerHTML = `
+        <div class="fraud-item__details">
+          <div class="fraud-item__user">${data.user_id}</div>
+          <div class="fraud-item__reason">${data.reason}</div>
+        </div>
+        <div class="fraud-item__time">Just now</div>
+      `;
+      list.prepend(li);
+      
+      // Keep only top 4
+      if (list.children.length > 4) {
+        list.lastElementChild.remove();
       }
     });
   </script>

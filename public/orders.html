@@ -601,7 +601,7 @@
 
       const ICONS = { clothing: '👕', electronics: '🎧', accessories: '🕶️' };
 
-      let currentUserId = 'user_001';
+      let currentUserId = localStorage.getItem('active_user') || 'user_001';
 
       // ── URL params ──
       const params = new URLSearchParams(window.location.search);
@@ -626,9 +626,11 @@
         }
         btn.addEventListener('click', () => {
           currentUserId = btn.dataset.user;
+          localStorage.setItem('active_user', currentUserId);
           document.querySelectorAll('.user-btn').forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
           loadAll();
+          if (typeof updateGlobalCartCount === 'function') updateGlobalCartCount();
         });
       });
 
@@ -785,7 +787,7 @@
   function updateGlobalCartCount() {
     const cc = document.getElementById('nav-cart-count');
     if (cc) {
-      const cart = JSON.parse(localStorage.getItem('cart')) || [];
+      const cart = JSON.parse(localStorage.getItem('cart_' + (localStorage.getItem('active_user') || 'user_001'))) || [];
       cc.textContent = cart.length;
     }
   }

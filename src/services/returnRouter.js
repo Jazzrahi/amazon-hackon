@@ -24,16 +24,17 @@ function calcPartialRefundPercent(qualityScore) {
 }
 
 /**
- * Routes a return based on AI quality score (primary) with fraud override.
+ * Routes a return based on AI quality score (primary) with fraud override and reason-based logic.
  * @param {Object} params
  * @param {number} params.qualityScore    - AI quality score 0-100
  * @param {string} params.grade           - "A", "B", or "C"
  * @param {number} params.productPrice    - Original product price in INR
  * @param {number} params.trustScore      - User trust score (0-100); < 40 → standard return
  * @param {boolean} params.fraudDetected  - Whether AI flagged fraud
+ * @param {string} params.reason          - Stated return reason
  * @returns {{decision, tier, qualityScore, partialRefundPercent, partialRefundAmount}}
  */
-function routeReturn({ qualityScore, grade, productPrice, trustScore, fraudDetected }) {
+function routeReturn({ qualityScore, grade, productPrice, trustScore, fraudDetected, reason }) {
   // Hard override: fraud
   if (fraudDetected) {
     return {
@@ -55,6 +56,41 @@ function routeReturn({ qualityScore, grade, productPrice, trustScore, fraudDetec
       partialRefundPercent: 0,
       partialRefundAmount: 0,
       rule: 'low_trust_score'
+    };
+  }
+
+  // Hard override: reported damaged/defective or incorrect item — must inspect at warehouse
+  if (reason === 'damaged') {
+    return {
+      decision: 'standard_return',
+      tier: 3,
+      qualityScore,
+      partialRefundPercent: 0,
+      partialRefundAmount: 0,
+      rule: 'item_damaged_no_resale'
+    };
+  }
+
+  if (reason === 'incorrect_item') {
+    return {
+      decision: 'standard_return',
+      tier: 3,
+      qualityScore,
+      partialRefundPercent: 0,
+      partialRefundAmount: 0,
+      rule: 'incorrect_item_warehouse_routing'
+    };
+  }
+
+  // Hard override: wrong size/fit — route directly to Second Life resale
+  if (reason === 'wrong_size') {
+    return {
+      decision: 'second_life',
+      tier: 2,
+      qualityScore,
+      partialRefundPercent: 100,
+      partialRefundAmount: productPrice,
+      rule: 'wrong_size_fit_resale'
     };
   }
 

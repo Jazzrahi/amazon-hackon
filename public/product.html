@@ -689,6 +689,15 @@
           </div>
         </div>
 
+        <!-- AR Fit Predictor (clothing only) -->
+        <div class="ar-fit-section" id="ar-fit-section" style="display: none; margin-bottom: 18px; border: 1px dashed var(--gray-300); padding: 12px; border-radius: 8px; background: var(--gray-50);">
+          <div style="font-size: 13px; font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">✨ AR Fit Predictor</div>
+          <div style="font-size: 11px; color: var(--gray-600); margin-bottom: 10px;">Upload a photo of yourself to see if this size will fit you.</div>
+          <input type="file" id="ar-fit-input" accept="image/*" style="display: none;">
+          <button id="ar-fit-btn" class="btn-buy btn-buy--now" style="padding: 8px; font-size: 12px; border-radius: 6px; background: linear-gradient(135deg, #1A73E8, #4A90D9);">Upload Photo for Fit Check</button>
+          <div id="ar-fit-result" style="margin-top: 10px; font-size: 12px; display: none; line-height: 1.4;"></div>
+        </div>
+
         <!-- Eco Alert (injected dynamically) -->
         <div id="eco-alert-container"></div>
 
@@ -818,6 +827,8 @@
           // Size selector visibility
           if (product.category === 'clothing') {
             document.getElementById('size-section').classList.add('visible');
+            document.getElementById('ar-fit-section').style.display = 'block';
+            window.currentProductCategory = product.category; // store for AR
           }
 
           // Details table
@@ -923,6 +934,64 @@
         }
       }
 
+      // AR Fit Predictor logic
+      const arFitBtn = document.getElementById('ar-fit-btn');
+      const arFitInput = document.getElementById('ar-fit-input');
+      const arFitResult = document.getElementById('ar-fit-result');
+      
+      arFitBtn.addEventListener('click', () => arFitInput.click());
+      
+      arFitInput.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        arFitBtn.textContent = 'Analyzing...';
+        arFitBtn.disabled = true;
+        arFitResult.style.display = 'none';
+        
+        const reader = new FileReader();
+        reader.onload = async (ev) => {
+          const base64Image = ev.target.result.split(',')[1];
+          const productName = document.getElementById('p-name').textContent;
+          const selectedSize = document.querySelector('.size-btn.active')?.dataset.size || 'M';
+          
+          try {
+            const res = await fetch('/api/predict-fit', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                image_base64: base64Image,
+                product_name: productName,
+                category: window.currentProductCategory || 'clothing',
+                size: selectedSize
+              })
+            });
+            const data = await res.json();
+            
+            arFitResult.style.display = 'block';
+            arFitResult.style.padding = '8px';
+            arFitResult.style.borderRadius = '6px';
+            if (data.isFitGood) {
+              arFitResult.style.background = 'rgba(0,168,107,0.1)';
+              arFitResult.style.color = '#067D62';
+              arFitResult.innerHTML = `<strong>✅ Great fit!</strong> ${escapeHtml(data.message)}`;
+            } else {
+              arFitResult.style.background = 'rgba(255,153,0,0.1)';
+              arFitResult.style.color = '#B12704';
+              arFitResult.innerHTML = `<strong>⚠️ Fit Warning:</strong> ${escapeHtml(data.message)}`;
+            }
+          } catch (err) {
+            console.error('AR Fit error:', err);
+            arFitResult.style.display = 'block';
+            arFitResult.textContent = 'Error predicting fit. Please try again.';
+          } finally {
+            arFitBtn.textContent = 'Upload Photo for Fit Check';
+            arFitBtn.disabled = false;
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+
       // Init
       loadProduct();
       loadRelatedProducts();
@@ -934,7 +1003,7 @@
   function updateGlobalCartCount() {
     const cc = document.getElementById('nav-cart-count');
     if (cc) {
-      const cart = JSON.parse(localStorage.getItem('cart')) || [];
+      const cart = JSON.parse(localStorage.getItem('cart_' + (localStorage.getItem('active_user') || 'user_001'))) || [];
       cc.textContent = cart.length;
     }
   }
@@ -984,9 +1053,9 @@
 
     function addToCart() {
       const product = getCurrentProduct();
-      let cart = JSON.parse(localStorage.getItem('cart')) || [];
+      let cart = JSON.parse(localStorage.getItem('cart_' + (localStorage.getItem('active_user') || 'user_001'))) || [];
       cart.push(product);
-      localStorage.setItem('cart', JSON.stringify(cart));
+      localStorage.setItem('cart_' + (localStorage.getItem('active_user') || 'user_001'), JSON.stringify(cart));
       if (typeof updateGlobalCartCount === 'function') updateGlobalCartCount();
       window.dispatchEvent(new Event('storage'));
       showToast('Item added to cart!');
@@ -1016,7 +1085,7 @@
         btn.style.color = '#FFF';
 
         // Clear the cart
-        localStorage.removeItem('cart');
+        localStorage.removeItem('cart_' + (localStorage.getItem('active_user') || 'user_001'));
         if (typeof updateGlobalCartCount === 'function') updateGlobalCartCount();
         window.dispatchEvent(new Event('storage'));
 
