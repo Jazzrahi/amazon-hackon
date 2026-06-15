@@ -179,7 +179,7 @@
 function updateGlobalCartCount() {
     const cc = document.getElementById('nav-cart-count');
     if (cc) {
-      const cart = JSON.parse(localStorage.getItem('cart')) || [];
+      const cart = JSON.parse(localStorage.getItem('cart_' + (localStorage.getItem('active_user') || 'user_001'))) || [];
       cc.textContent = cart.length;
     }
   }
@@ -228,9 +228,9 @@ function updateGlobalCartCount() {
 
     function addToCart() {
       const product = getCurrentProduct();
-      let cart = JSON.parse(localStorage.getItem('cart')) || [];
+      let cart = JSON.parse(localStorage.getItem('cart_' + (localStorage.getItem('active_user') || 'user_001'))) || [];
       cart.push(product);
-      localStorage.setItem('cart', JSON.stringify(cart));
+      localStorage.setItem('cart_' + (localStorage.getItem('active_user') || 'user_001'), JSON.stringify(cart));
       if (typeof updateGlobalCartCount === 'function') updateGlobalCartCount();
       window.dispatchEvent(new Event('storage'));
       showToast('Item added to cart!');
@@ -243,7 +243,7 @@ function updateGlobalCartCount() {
       btn.innerHTML = '<span style="opacity:0.6">Processing...</span>';
 
       const product = getCurrentProduct();
-      const userId = new URLSearchParams(window.location.search).get('user_id') || 'user_001';
+      const userId = new URLSearchParams(window.location.search).get('user_id') || localStorage.getItem('active_user') || 'user_001';
 
       try {
         const response = await fetch('/api/orders', {
@@ -263,7 +263,7 @@ function updateGlobalCartCount() {
         btn.style.color = '#FFF';
 
         // Clear the cart
-        localStorage.removeItem('cart');
+        localStorage.removeItem('cart_' + (localStorage.getItem('active_user') || 'user_001'));
         if (typeof updateGlobalCartCount === 'function') updateGlobalCartCount();
         window.dispatchEvent(new Event('storage'));
 

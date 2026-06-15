@@ -2,11 +2,16 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const rateLimit = require('express-rate-limit');
+const http = require('http');
+const { Server } = require('socket.io');
 
 const app = express();
 const PORT = 3000;
 
-const rateLimit = require('express-rate-limit');
+const server = http.createServer(app);
+const io = new Server(server, { cors: { origin: '*' } });
+app.set('io', io);
 
 // Middleware
 app.use(cors());
@@ -24,8 +29,6 @@ app.use('/api', apiLimiter);
 app.use(express.static(path.join(__dirname, 'public')));
 
 // API routes
-
-// API routes
 const apiRoutes = require('./src/routes/api');
 app.use('/api', apiRoutes);
 
@@ -34,12 +37,6 @@ app.use((err, req, res, next) => {
   console.error('[Server Error]', err.message);
   res.status(500).json({ error: 'Internal server error' });
 });
-
-const http = require('http');
-const { Server } = require('socket.io');
-
-const server = http.createServer(app);
-const io = new Server(server);
 
 // Mock real-time data streaming
 setInterval(() => {

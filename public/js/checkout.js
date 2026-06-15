@@ -1,10 +1,10 @@
 let cart = [];
     let userCredits = 0;
     let subtotal = 0;
-    const currentUser = 'user_001'; // Mock logged-in user
+    const currentUser = localStorage.getItem('active_user') || 'user_001';
     
     async function initCheckout() {
-      cart = JSON.parse(localStorage.getItem('cart')) || [];
+      cart = JSON.parse(localStorage.getItem('cart_' + (localStorage.getItem('active_user') || 'user_001'))) || [];
       
       if (cart.length === 0) {
         document.getElementById('loading').textContent = 'Your cart is empty. Please add items to checkout.';
@@ -94,7 +94,7 @@ let cart = [];
         if (!res.ok) throw new Error('Checkout failed');
         
         // Success
-        localStorage.removeItem('cart');
+        localStorage.removeItem('cart_' + (localStorage.getItem('active_user') || 'user_001'));
         window.dispatchEvent(new Event('storage')); // Update cart badge everywhere
         
         document.getElementById('checkout-container').style.display = 'none';

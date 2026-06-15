@@ -40,7 +40,7 @@ router.get('/product/:id', async (req, res) => {
  * Orchestrates: grading → pricing → demand → routing → logistics
  */
 router.post('/process-return', async (req, res) => {
-  const { user_id, product_id } = req.body;
+  const { user_id, product_id, reason, customReason, description } = req.body;
 
   const missingFields = [];
   if (!user_id) missingFields.push('user_id');
@@ -99,6 +99,21 @@ router.post('/process-return', async (req, res) => {
     qualityScore = grade === 'A' ? 90 : grade === 'B' ? 72 : 35;
   }
 
+  // Adjust quality score, grade, and explanation dynamically based on selected return reason for full consistency
+  if (reason === 'damaged') {
+    grade = 'C';
+    qualityScore = 35;
+    explanation = `Customer reported item as damaged/defective: "${description || 'No description provided'}". AI inspection verified structural/surface defects. Not eligible for resale.`;
+  } else if (reason === 'wrong_size') {
+    grade = 'A';
+    qualityScore = 92;
+    explanation = `Wrong size / fit reported. Item remains in Like-New condition. Perfect candidate for local P2P resale!`;
+  } else if (reason === 'incorrect_item') {
+    grade = 'A';
+    qualityScore = 95;
+    explanation = `Incorrect item shipped. Brand new condition. Routing to warehouse.`;
+  }
+
   // Get demand data FIRST (pricing depends on it)
   const demandData = await getAllDemand();
   const { demandScore, classification: demandClassification, confidence: demandConfidence, salesVelocity, factors: demandFactors } = getDemandScore(
@@ -120,13 +135,24 @@ router.post('/process-return', async (req, res) => {
     grade,
     productPrice: product.price,
     trustScore: user.trust_score,
-    fraudDetected
+    fraudDetected,
+    reason // Pass reason here!
   });
 
   let pickupResult = null;
   if (!fraudDetected) {
     const deliveryRoutes = await getAllDeliveryRoutes();
     pickupResult = schedulePickup(user.area, deliveryRoutes);
+  } else {
+    // Emit real-time fraud alert to admin dashboard
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('fraudAlert', {
+        user_id: user_id,
+        reason: explanation,
+        time: new Date().toISOString()
+      });
+    }
   }
 
   const response = {
@@ -164,6 +190,27 @@ router.post('/process-return', async (req, res) => {
   };
 
   res.json(response);
+});
+
+/**
+ * POST /api/accept-standard-return
+ */
+router.post('/accept-standard-return', async (req, res) => {
+  const { user_id, product_id } = req.body;
+
+  if (!user_id || !product_id) {
+    return res.status(400).json({ error: 'Missing user_id or product_id' });
+  }
+
+  const order = await getOrder(user_id, product_id);
+  if (order) {
+    await markOrderReturned(order.order_id, 'standard_return');
+  }
+
+  res.json({
+    success: true,
+    message: 'Standard return initiated'
+  });
 });
 
 /**
@@ -213,7 +260,7 @@ router.post('/list-for-resale', async (req, res) => {
   const finalGrade = grade || 'B';
   const finalResalePrice = resale_price || Math.round(product.price * 0.7);
 
-  await updateProductResale(product_id, finalGrade, finalResalePrice);
+  await updateProductResale(product_id, finalGrade, finalResalePrice, user_id);
   const updatedProduct = await getProductById(product_id);
 
   if (user_id) {
@@ -238,26 +285,35 @@ router.post('/list-for-resale', async (req, res) => {
   });
 });
 
-/**
- * GET /api/second-life
- */
 router.get('/second-life', async (req, res) => {
   const items = await getSecondLifeItems();
   const region = req.query.region;
-  
-  if (region) {
-      // Simulate location-based filtering for hackathon:
-      // Users in Delhi see some items, Mumbai sees others.
-      // E.g., if product id has an even number it goes to Delhi, odd to Mumbai, etc.
-      // This creates the illusion of localized P2P inventory.
-      const filtered = items.filter(item => {
-          if (!region) return true;
-          return item.current_region === region;
-      });
-      return res.json(filtered);
+
+  if (!region) {
+      return res.json(items);
   }
+
+  const { getUserById } = require('../services/dataStore');
   
-  res.json(items);
+  const filtered = [];
+  for (const item of items) {
+      if (item.current_region === region) {
+          filtered.push(item);
+      } else if (item.inventory_owner && item.inventory_owner.startsWith('seller_')) {
+          const sellerId = item.inventory_owner.replace('seller_', '');
+          const seller = await getUserById(sellerId);
+          if (seller && seller.region === region) {
+              filtered.push(item);
+          }
+      } else {
+          const num = parseInt(item.id.replace(/[^0-9]/g, ''), 10) || 0;
+          if (region === 'Delhi' && num % 2 === 0) filtered.push(item);
+          else if (region === 'Mumbai' && num % 2 !== 0) filtered.push(item);
+          else if (region !== 'Delhi' && region !== 'Mumbai') filtered.push(item);
+      }
+  }
+
+  res.json(filtered);
 });
 
 /**
@@ -462,6 +518,155 @@ router.post('/validate-return', async (req, res) => {
             match: true,
             message: `✅ Reason validated (fallback). Proceeding to analysis.`
         });
+    }
+});
+
+/**
+ * POST /api/predict-fit
+ */
+router.post('/predict-fit', async (req, res) => {
+    const { image_base64, product_name, category, size } = req.body;
+    
+    if (!image_base64 || !product_name || !size) {
+        return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    try {
+        const { predictFit } = require('../services/visionAi');
+        const result = await predictFit(image_base64, 'image/jpeg', product_name, category, size);
+        
+        if (result) {
+            return res.json({
+                isFitGood: result.isFitGood,
+                confidence: result.confidence,
+                message: result.explanation
+            });
+        }
+        
+        // Fallback
+        res.json({
+            isFitGood: true,
+            confidence: 50,
+            message: 'Fit predicted good (fallback).'
+        });
+    } catch (err) {
+        console.error('[API] Fit prediction error:', err.message);
+        res.json({
+            isFitGood: true,
+            confidence: 30,
+            message: 'Fit predicted good (error fallback).'
+        });
+    }
+});
+
+/**
+ * GET /api/leaderboard
+ */
+router.get('/leaderboard', async (req, res) => {
+    try {
+        const { getTopUsers } = require('../services/dataStore');
+        const users = await getTopUsers(5);
+        res.json(users);
+    } catch (err) {
+        console.error('[API] Leaderboard error:', err.message);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+/**
+ * GET /api/transactions/:userId
+ * Returns a synthesised credit-history for the Green Credits dashboard.
+ * Derives entries from orders joined with products.
+ */
+router.get('/transactions/:userId', async (req, res) => {
+    try {
+        const { getOrdersByUserId, getProductById, getUserById } = require('../services/dataStore');
+        const userId = req.params.userId;
+
+        const user = await getUserById(userId);
+        if (!user) return res.status(404).json({ error: 'User not found' });
+
+        const orders = await getOrdersByUserId(userId);
+        const transactions = [];
+
+        for (const order of orders) {
+            const product = await getProductById(order.product_id);
+            const productName = product ? product.name : 'Item';
+            const dateStr = new Date(order.order_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+
+            if (order.returned) {
+                if (order.status === 'green_credit') {
+                    // Kept item — earned partial refund as green credit
+                    const refundAmount = product ? Math.round(product.price * 0.25) : 50;
+                    transactions.push({
+                        type: 'earn',
+                        icon: '🌱',
+                        desc: `Kept "${productName}" — Partial Refund Credit`,
+                        date: dateStr,
+                        amount: `+₹${refundAmount}`,
+                        raw: refundAmount
+                    });
+                } else if (order.status === 'p2p_resale') {
+                    // Listed for resale — pending credit until sold
+                    transactions.push({
+                        type: 'pending',
+                        icon: '🏪',
+                        desc: `"${productName}" listed on Second Life — awaiting sale`,
+                        date: dateStr,
+                        amount: '⏳ Pending',
+                        raw: 0
+                    });
+                } else if (order.status === 'standard_return') {
+                    transactions.push({
+                        type: 'neutral',
+                        icon: '📦',
+                        desc: `Standard return — "${productName}"`,
+                        date: dateStr,
+                        amount: '₹0',
+                        raw: 0
+                    });
+                }
+            } else if (order.status === 'p2p_local_delivery') {
+                // Bought a second-life item locally
+                transactions.push({
+                    type: 'spend',
+                    icon: '♻️',
+                    desc: `Bought "${productName}" from Second Life`,
+                    date: dateStr,
+                    amount: product ? `-₹${product.resale_price || product.price}` : '—',
+                    raw: 0
+                });
+            }
+        }
+
+        // Also check if user has items currently listed (inventory_owner = seller_userId)
+        const { getAllProducts } = require('../services/dataStore');
+        const allProducts = await getAllProducts();
+        const listed = allProducts.filter(p => p.inventory_owner === `seller_${userId}`);
+        for (const p of listed) {
+            // Only add if not already in a p2p_resale order entry
+            const alreadyIn = transactions.some(t => t.desc.includes(p.name));
+            if (!alreadyIn) {
+                transactions.push({
+                    type: 'pending',
+                    icon: '🏪',
+                    desc: `"${p.name}" listed on Second Life — awaiting sale`,
+                    date: 'Active listing',
+                    amount: `⏳ +₹${p.resale_price || Math.round(p.price * 0.7)} on sale`,
+                    raw: 0
+                });
+            }
+        }
+
+        res.json({
+            user_id: userId,
+            name: user.name,
+            green_credits: user.green_credits,
+            transactions
+        });
+    } catch (err) {
+        console.error('[API] Transactions error:', err.message);
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 

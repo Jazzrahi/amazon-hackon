@@ -1,5 +1,5 @@
 const params = new URLSearchParams(window.location.search);
-    const userId = params.get('user_id') || 'user_001';
+    const userId = params.get('user_id') || localStorage.getItem('active_user') || 'user_001';
     const productId = params.get('product_id') || 'prod_001';
 
     let returnData = null;
@@ -379,7 +379,7 @@ const params = new URLSearchParams(window.location.search);
 function updateGlobalCartCount() {
       const cc = document.getElementById('nav-cart-count');
       if (cc) {
-        const cart = JSON.parse(localStorage.getItem('cart')) || [];
+        const cart = JSON.parse(localStorage.getItem('cart_' + (localStorage.getItem('active_user') || 'user_001'))) || [];
         cc.textContent = cart.length;
       }
     }

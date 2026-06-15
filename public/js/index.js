@@ -68,7 +68,7 @@ function animateValue(el, target, prefix, suffix, duration) {
 function updateGlobalCartCount() {
     const cc = document.getElementById('nav-cart-count');
     if (cc) {
-      const cart = JSON.parse(localStorage.getItem('cart')) || [];
+      const cart = JSON.parse(localStorage.getItem('cart_' + (localStorage.getItem('active_user') || 'user_001'))) || [];
       cc.textContent = cart.length;
     }
   }

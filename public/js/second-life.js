@@ -3,15 +3,22 @@
 
       let allItems = [];
       let activeFilter = 'recommended';
-      let currentUser = 'user_001';
+      let currentUser = localStorage.getItem('active_user') || 'user_001';
 
       // ── User switcher ──
       document.querySelectorAll('.user-btn').forEach(btn => {
+        if (btn.dataset.user === currentUser) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
         btn.addEventListener('click', () => {
           document.querySelectorAll('.user-btn').forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
           currentUser = btn.dataset.user;
+          localStorage.setItem('active_user', currentUser);
           loadItems(); // Reload items for the new user's region
+          if (typeof updateGlobalCartCount === 'function') updateGlobalCartCount();
         });
       });
 
@@ -247,9 +254,9 @@
         
         // Add item to localStorage cart
         if (window.currentModalItem) {
-          let cart = JSON.parse(localStorage.getItem('cart')) || [];
+          let cart = JSON.parse(localStorage.getItem('cart_' + (localStorage.getItem('active_user') || 'user_001'))) || [];
           cart.push(window.currentModalItem);
-          localStorage.setItem('cart', JSON.stringify(cart));
+          localStorage.setItem('cart_' + (localStorage.getItem('active_user') || 'user_001'), JSON.stringify(cart));
           if (typeof updateGlobalCartCount === 'function') updateGlobalCartCount();
           window.dispatchEvent(new Event('storage'));
         }
@@ -368,7 +375,7 @@
 function updateGlobalCartCount() {
     const cc = document.getElementById('nav-cart-count');
     if (cc) {
-      const cart = JSON.parse(localStorage.getItem('cart')) || [];
+      const cart = JSON.parse(localStorage.getItem('cart_' + (localStorage.getItem('active_user') || 'user_001'))) || [];
       cc.textContent = cart.length;
     }
   }

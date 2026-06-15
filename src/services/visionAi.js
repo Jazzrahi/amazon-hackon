@@ -298,4 +298,73 @@ async function validateReason(base64Image, mimeType, expectedProduct, reason, cu
   }
 }
 
-module.exports = { analyzeImage, analyzeBill, validateReason };
+/**
+ * Predicts if a clothing item will fit the user based on an uploaded photo.
+ * @param {string} base64Image - Base64 encoded image of the user
+ * @param {string} mimeType - The mime type
+ * @param {string} productName - The product name
+ * @param {string} category - Category (e.g. 'clothing')
+ * @param {string} size - The selected size (e.g. 'M')
+ * @returns {Promise<Object|null>} - { isFitGood, confidence, explanation }
+ */
+async function predictFit(base64Image, mimeType, productName, category, size) {
+  if (!process.env.GEMINI_API_KEY) {
+    console.warn('[VisionAI] No GEMINI_API_KEY found. Falling back to mock fit prediction.');
+    return null;
+  }
+
+  try {
+    const prompt = `
+      You are an expert Amazon AR Size & Fit Assistant.
+      The customer is interested in buying: "${productName}" (Category: ${category}) in Size: "${size}".
+      
+      Examine the provided image of the customer.
+      
+      Evaluate how this specific item and size would fit them based on their visible body shape and proportions.
+      Be constructive and helpful. If the size seems wrong, gently suggest a better size.
+      
+      Respond ONLY with valid JSON (no markdown):
+      {
+        "isFitGood": boolean,
+        "confidence": number (0-100),
+        "explanation": "string — 1-2 friendly sentences explaining the fit prediction and any sizing advice."
+      }
+    `;
+
+    const response = await callWithRetry(() => ai.models.generateContent({
+      model: GEMINI_MODEL,
+      contents: [
+        {
+          role: 'user',
+          parts: [
+            { text: prompt },
+            {
+              inlineData: {
+                data: base64Image,
+                mimeType: mimeType || 'image/jpeg'
+              }
+            }
+          ]
+        }
+      ],
+      config: {
+        responseMimeType: 'application/json',
+      }
+    }));
+
+    const resultText = response.text;
+    const result = JSON.parse(resultText);
+
+    return {
+      isFitGood: result.isFitGood,
+      confidence: typeof result.confidence === 'number' ? result.confidence : 70,
+      explanation: result.explanation || 'Fit predicted by AI Vision.'
+    };
+
+  } catch (error) {
+    console.error('[VisionAI] Error predicting fit:', error);
+    return null;
+  }
+}
+
+module.exports = { analyzeImage, analyzeBill, validateReason, predictFit };
