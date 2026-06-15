@@ -34,6 +34,9 @@ async function initDB() {
         DELETE FROM users;
         DELETE FROM demand;
         DELETE FROM delivery_routes;
+        DELETE FROM audit_logs;
+        DELETE FROM fraud_flags;
+        DELETE FROM environmental_impact;
     `);
 
     // Insert users
@@ -46,13 +49,17 @@ async function initDB() {
 
     // Insert products
     for (const prod of seedData.products || []) {
+        const num = parseInt(prod.id.replace(/[^0-9]/g, ''), 10) || 0;
+        const initialRegion = num % 2 === 0 ? 'Delhi' : 'Mumbai';
+        
         await db.run(
-            `INSERT INTO products (id, name, price, return_shipping_cost, high_return_risk, category, return_rate, sizing_advice, carbon_savings_kg, inventory_owner, graded, grade, resale_price, image_url)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            `INSERT INTO products (id, name, price, return_shipping_cost, high_return_risk, category, return_rate, sizing_advice, carbon_savings_kg, inventory_owner, graded, grade, resale_price, image_url, inventory_age_days, current_region)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
                 prod.id, prod.name, prod.price, prod.return_shipping_cost, prod.high_return_risk ? 1 : 0,
                 prod.category, prod.return_rate, prod.sizing_advice, prod.carbon_savings_kg, prod.inventory_owner,
-                prod.graded ? 1 : 0, prod.grade, prod.resale_price, prod.image_url
+                prod.graded ? 1 : 0, prod.grade, prod.resale_price, prod.image_url, prod.inventory_age_days || Math.floor(Math.random() * 30),
+                prod.current_region || initialRegion
             ]
         );
     }

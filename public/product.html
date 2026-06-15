@@ -1026,7 +1026,10 @@
           body: JSON.stringify({ user_id: userId, product_id: product.id })
         });
         
-        if (!response.ok) throw new Error('Order failed');
+        if (!response.ok) {
+           const errData = await response.json().catch(() => ({}));
+           throw new Error(errData.error || 'Order failed');
+        }
 
         // Show success state on button
         btn.innerHTML = '✓ Order Confirmed!';

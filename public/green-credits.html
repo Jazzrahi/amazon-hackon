@@ -867,16 +867,16 @@
 
           let hasTx = false;
           orders.forEach(o => {
-            if (o.status === 'credit_accepted' || o.status === 'resale_listed' || o.status === 'partial_refund') {
+            if (o.status === 'green_credit' || o.status === 'p2p_resale' || o.status === 'credit_accepted' || o.status === 'resale_listed') {
               hasTx = true;
               const dateStr = new Date(o.order_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
               
               let desc = '', amount = '', icon = '', amountClass = 'transaction__amount--earn';
-              if (o.status === 'credit_accepted' || o.status === 'partial_refund') {
-                desc = `Kept Flawed Item (Order ${o.order_id}) — Green Credit & Refund`;
-                amount = '+₹650'; // Using placeholder amount or we could just show +Credits
+              if (o.status === 'green_credit' || o.status === 'credit_accepted') {
+                desc = `Kept Flawed Item (Order ${o.order_id}) — Refund & Credit`;
+                amount = '+ Credits 💚'; 
                 icon = '🌱';
-              } else if (o.status === 'resale_listed') {
+              } else if (o.status === 'p2p_resale' || o.status === 'resale_listed') {
                 desc = `Listed Order ${o.order_id} on Second Life`;
                 amount = '+50 💚';
                 icon = '♻️';

@@ -1050,7 +1050,7 @@
           ['Item', name],
           ['AI Quality Score', `${qs}/100 — Requires Inspection`],
           ['Return Method', 'Prepaid shipping label (sent to email)'],
-          ['Pickup', d.pickup?.scheduled ? `${d.pickup.pickup_day}, ${d.pickup.time_window}` : 'Drop-off at nearest point'],
+          ['Pickup', d.pickup?.scheduled ? `${d.pickup.pickup_day || 'Any day'}, ${d.pickup.time_window || 'Standard Drop-off'}` : 'Drop-off at nearest point'],
           ['Refund Timeline', '5–7 business days'],
         ]);
       }

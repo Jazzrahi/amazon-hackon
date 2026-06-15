@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin Dashboard – Second Life</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="/socket.io/socket.io.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root {
@@ -322,6 +323,58 @@
             ticks: { display: false }
           }
         }
+    });
+
+    // Real-time updates via Socket.io
+    const socket = io();
+    socket.on('live_metrics', (data) => {
+      // Create a toast notification for live demand updates
+      const toast = document.createElement('div');
+      toast.style.position = 'fixed';
+      toast.style.bottom = '20px';
+      toast.style.right = '20px';
+      toast.style.background = '#232F3E';
+      toast.style.color = '#fff';
+      toast.style.padding = '12px 20px';
+      toast.style.borderRadius = '8px';
+      toast.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+      toast.style.zIndex = 1000;
+      toast.style.fontSize = '14px';
+      toast.innerHTML = `<strong>Live Demand Spike:</strong> ${data.demand_update.category} in ${data.demand_update.region} (Score: ${data.demand_update.score})`;
+      document.body.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.5s ease';
+        setTimeout(() => toast.remove(), 500);
+      }, 4000);
+      
+      // Update the chart randomly to simulate live data
+      const dsIndex = data.demand_update.category === 'electronics' ? 0 : 1;
+      const labelIndex = ctxDemand.chart.data.labels.indexOf(data.demand_update.region);
+      if(labelIndex !== -1) {
+          ctxDemand.chart.data.datasets[dsIndex].data[labelIndex] = data.demand_update.score;
+          ctxDemand.chart.update();
+      }
+    });
+
+    socket.on('fraud_alert', (alert) => {
+      const list = document.querySelector('.fraud-list');
+      const li = document.createElement('li');
+      li.className = 'fraud-item';
+      li.innerHTML = `
+        <div class="fraud-item__details">
+          <div class="fraud-item__user">${alert.user}</div>
+          <div class="fraud-item__reason">${alert.reason}</div>
+        </div>
+        <div class="fraud-item__time">${alert.time}</div>
+      `;
+      // Insert at top
+      list.insertBefore(li, list.firstChild);
+      
+      // Keep only last 5 items
+      if (list.children.length > 5) {
+        list.removeChild(list.lastChild);
       }
     });
   </script>

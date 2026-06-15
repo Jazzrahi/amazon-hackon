@@ -22,19 +22,31 @@ async function callWithRetry(fn, maxRetries = 2) {
   }
 }
 
+const crypto = require('crypto');
+
+// Caches for the vision endpoints
+const cacheAnalyzeImage = new Map();
+const cacheAnalyzeBill = new Map();
+const cacheValidateReason = new Map();
+
+// Helper to generate a cache key
+function getCacheKey(...args) {
+  return crypto.createHash('md5').update(args.join('|')).digest('hex');
+}
+
 /**
  * Analyzes a base64 image against an expected product category.
- * @param {string} base64Image - Base64 encoded image string (without the data URL prefix)
- * @param {string} mimeType - The mime type of the image (e.g., 'image/jpeg')
- * @param {string} expectedCategory - The category of the product (e.g., 'clothing', 'electronics')
- * @param {string} productName - The name of the product
- * @param {number} productPrice - Original product price in INR (for refund calc context)
- * @returns {Promise<Object>} - Object containing { isValid, grade, quality_score, explanation, carbon_saved_kg }
  */
 async function analyzeImage(base64Image, mimeType, expectedCategory, productName, productPrice) {
   if (!process.env.GEMINI_API_KEY) {
     console.warn('[VisionAI] No GEMINI_API_KEY found. Falling back to mock grading.');
-    return null; // Signals the route to use mock grading
+    return null;
+  }
+
+  const cacheKey = getCacheKey('analyzeImage', base64Image, expectedCategory, productName);
+  if (cacheAnalyzeImage.has(cacheKey)) {
+    console.log('[VisionAI] CACHE HIT: analyzeImage');
+    return cacheAnalyzeImage.get(cacheKey);
   }
 
   try {
@@ -97,13 +109,16 @@ async function analyzeImage(base64Image, mimeType, expectedCategory, productName
     const resultText = response.text;
     const jsonResult = JSON.parse(resultText);
 
-    return {
+    const result = {
       isValid: jsonResult.isValid,
       grade: jsonResult.grade || 'B',
       quality_score: typeof jsonResult.quality_score === 'number' ? jsonResult.quality_score : 70,
       explanation: jsonResult.explanation || 'Analyzed by AI Vision.',
       carbon_saved_kg: typeof jsonResult.carbon_saved_kg === 'number' ? jsonResult.carbon_saved_kg : 1.5
     };
+    
+    cacheAnalyzeImage.set(cacheKey, result);
+    return result;
 
   } catch (error) {
     console.error('[VisionAI] Error analyzing image:', error);
@@ -113,15 +128,17 @@ async function analyzeImage(base64Image, mimeType, expectedCategory, productName
 
 /**
  * Analyzes a bill/receipt image to verify it's legitimate.
- * @param {string} base64Image - Base64 encoded bill image
- * @param {string} mimeType - The mime type (e.g., 'image/jpeg')
- * @param {string} expectedProduct - The product name being returned
- * @returns {Promise<Object|null>} - { isValid, productMatch, withinReturnWindow, confidence, explanation }
  */
 async function analyzeBill(base64Image, mimeType, expectedProduct) {
   if (!process.env.GEMINI_API_KEY) {
     console.warn('[VisionAI] No GEMINI_API_KEY found. Falling back to mock bill verification.');
     return null;
+  }
+
+  const cacheKey = getCacheKey('analyzeBill', base64Image, expectedProduct);
+  if (cacheAnalyzeBill.has(cacheKey)) {
+    console.log('[VisionAI] CACHE HIT: analyzeBill');
+    return cacheAnalyzeBill.get(cacheKey);
   }
 
   try {
@@ -181,17 +198,20 @@ async function analyzeBill(base64Image, mimeType, expectedProduct) {
     }));
 
     const resultText = response.text;
-    const result = JSON.parse(resultText);
+    const resultJson = JSON.parse(resultText);
 
-    return {
-      isBill: result.isBill !== false,
-      productMatch: result.productMatch !== false,
-      withinReturnWindow: result.withinReturnWindow !== false,
-      dateReadable: result.dateReadable !== false,
-      confidence: typeof result.confidence === 'number' ? result.confidence : 50,
-      explanation: result.explanation || 'Analyzed by AI Vision.',
-      isValid: result.isBill && (result.productMatch !== false)
+    const result = {
+      isBill: resultJson.isBill !== false,
+      productMatch: resultJson.productMatch !== false,
+      withinReturnWindow: resultJson.withinReturnWindow !== false,
+      dateReadable: resultJson.dateReadable !== false,
+      confidence: typeof resultJson.confidence === 'number' ? resultJson.confidence : 50,
+      explanation: resultJson.explanation || 'Analyzed by AI Vision.',
+      isValid: resultJson.isBill && (resultJson.productMatch !== false)
     };
+    
+    cacheAnalyzeBill.set(cacheKey, result);
+    return result;
 
   } catch (error) {
     console.error('[VisionAI] Error analyzing bill:', error);
@@ -201,18 +221,17 @@ async function analyzeBill(base64Image, mimeType, expectedProduct) {
 
 /**
  * Validates if the uploaded photo matches the customer's stated return reason.
- * @param {string} base64Image - Base64 encoded image string
- * @param {string} mimeType - The mime type
- * @param {string} expectedProduct - The product name
- * @param {string} reason - The main reason selected from dropdown
- * @param {string} customReason - Any custom reason text
- * @param {string} description - Detailed description provided by the user
- * @returns {Promise<Object|null>} - { match, confidence, explanation }
  */
 async function validateReason(base64Image, mimeType, expectedProduct, reason, customReason, description) {
   if (!process.env.GEMINI_API_KEY) {
     console.warn('[VisionAI] No GEMINI_API_KEY found. Falling back to mock reason validation.');
     return null;
+  }
+
+  const cacheKey = getCacheKey('validateReason', base64Image, expectedProduct, reason, description);
+  if (cacheValidateReason.has(cacheKey)) {
+    console.log('[VisionAI] CACHE HIT: validateReason');
+    return cacheValidateReason.get(cacheKey);
   }
 
   try {
@@ -262,13 +281,16 @@ async function validateReason(base64Image, mimeType, expectedProduct, reason, cu
     }));
 
     const resultText = response.text;
-    const result = JSON.parse(resultText);
+    const resultJson = JSON.parse(resultText);
 
-    return {
-      match: result.match !== false,
-      confidence: typeof result.confidence === 'number' ? result.confidence : 50,
-      explanation: result.explanation || 'Analyzed by AI Vision.'
+    const result = {
+      match: resultJson.match !== false,
+      confidence: typeof resultJson.confidence === 'number' ? resultJson.confidence : 50,
+      explanation: resultJson.explanation || 'Analyzed by AI Vision.'
     };
+    
+    cacheValidateReason.set(cacheKey, result);
+    return result;
 
   } catch (error) {
     console.error('[VisionAI] Error validating reason:', error);

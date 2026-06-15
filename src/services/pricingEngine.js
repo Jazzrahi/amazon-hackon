@@ -24,10 +24,10 @@ const CATEGORY_RISK = {
  * @param {number} originalPrice - Original price in INR
  * @param {"A"|"B"|"C"} grade - AI-assigned condition grade
  * @param {number} [demandScore=50] - Demand score 0-100 (from demand predictor)
- * @param {string} [category='general'] - Product category
+ * @param {number} [inventoryAgeDays=0] - Number of days the item has been in inventory
  * @returns {{resalePrice: number, markdownPercent: number, markdownAmount: number, demandAdjustment: string}}
  */
-function calculateResalePrice(originalPrice, grade, demandScore, category) {
+function calculateResalePrice(originalPrice, grade, demandScore, category, inventoryAgeDays = 0) {
   if (
     originalPrice === null ||
     originalPrice === undefined ||
@@ -64,8 +64,16 @@ function calculateResalePrice(originalPrice, grade, demandScore, category) {
   const categoryMultiplier = CATEGORY_RISK[category] || 1.0;
   markdownRate *= categoryMultiplier;
 
-  // Clamp markdown between 5% and 70%
-  markdownRate = Math.max(0.05, Math.min(0.70, markdownRate));
+  // --- Time decay adjustment ---
+  // If an item sits for > 14 days, increase markdown to move it faster.
+  // E.g., +1% markdown for every 2 days over 14.
+  if (inventoryAgeDays > 14) {
+      const extraMarkdown = Math.floor((inventoryAgeDays - 14) / 2) * 0.01;
+      markdownRate += extraMarkdown;
+  }
+
+  // Clamp markdown between 5% and 80% (increased max to allow deep discounts on old inventory)
+  markdownRate = Math.max(0.05, Math.min(0.80, markdownRate));
 
   const markdownPercent = Math.round(markdownRate * 100);
   const resalePrice = Math.round(originalPrice * (1 - markdownRate));

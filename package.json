@@ -22,9 +22,12 @@
   "homepage": "https://github.com/Jazzrahi/amazon-hackon#readme",
   "dependencies": {
     "@google/genai": "^2.8.0",
+    "chart.js": "^4.5.1",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.5.2",
+    "socket.io": "^4.8.3",
     "sqlite": "^5.1.1",
     "sqlite3": "^6.0.1"
   },

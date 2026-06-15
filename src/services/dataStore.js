@@ -140,6 +140,11 @@ async function buySecondLifeItem(userId, productId) {
     return getProductById(productId);
 }
 
+async function updateProductRegion(productId, region) {
+    const db = await getDB();
+    await db.run(`UPDATE products SET current_region = ? WHERE id = ?`, [region, productId]);
+}
+
 async function checkoutCart(userId, items, creditsUsed) {
     const db = await getDB();
     
@@ -185,6 +190,7 @@ module.exports = {
   getOrder,
   markOrderReturned,
   updateProductResale,
+  updateProductRegion,
   createOrder,
   getAllOrders,
   getAllUsers,

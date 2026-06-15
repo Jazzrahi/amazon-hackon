@@ -23,7 +23,9 @@ CREATE TABLE IF NOT EXISTS products (
     graded BOOLEAN NOT NULL DEFAULT 0,
     grade TEXT,
     resale_price INTEGER,
-    image_url TEXT
+    image_url TEXT,
+    inventory_age_days INTEGER DEFAULT 0,
+    current_region TEXT DEFAULT 'Delhi'
 );
 
 CREATE TABLE IF NOT EXISTS demand (
@@ -50,4 +52,27 @@ CREATE TABLE IF NOT EXISTS orders (
     returned BOOLEAN NOT NULL DEFAULT 0,
     FOREIGN KEY(user_id) REFERENCES users(id),
     FOREIGN KEY(product_id) REFERENCES products(id)
+);
+
+CREATE TABLE IF NOT EXISTS audit_logs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    event_type TEXT NOT NULL,
+    details TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS fraud_flags (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id TEXT NOT NULL,
+    reason TEXT NOT NULL,
+    flagged_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    resolved BOOLEAN DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS environmental_impact (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    co2_saved_kg REAL NOT NULL,
+    ewaste_prevented_kg REAL NOT NULL,
+    items_rescued INTEGER NOT NULL,
+    recorded_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );

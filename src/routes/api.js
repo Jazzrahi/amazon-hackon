@@ -5,7 +5,7 @@ const {
   getUserById, getProductById, getAllProducts, getSecondLifeItems, 
   getOrdersByUserId, updateUserCredits, markItemAsAmazonOwned, 
   getAllDemand, getAllDeliveryRoutes, getOrder, markOrderReturned, 
-  updateProductResale, createOrder, getAllOrders, getAllUsers
+  updateProductResale, updateProductRegion, createOrder, getAllOrders, getAllUsers
 } = require('../services/dataStore');
 const { gradeItem } = require('../services/gradingEngine');
 const { calculateResalePrice } = require('../services/pricingEngine');
@@ -109,7 +109,7 @@ router.post('/process-return', async (req, res) => {
 
   // Dynamic pricing: factors in grade + demand + category
   const { resalePrice, markdownPercent, demandAdjustment } = calculateResalePrice(
-    product.price, grade, demandScore, product.category
+    product.price, grade, demandScore, product.category, product.inventory_age_days || 0
   );
 
 
@@ -221,11 +221,19 @@ router.post('/list-for-resale', async (req, res) => {
     if (order) {
         await markOrderReturned(order.order_id, 'p2p_resale');
     }
+    const allUsers = await getAllUsers();
+    const user = allUsers.find(u => u.id === user_id);
+    if (user && user.region) {
+        await updateProductRegion(product_id, user.region);
+    }
+    // Award 50 green credits for choosing sustainable resale
+    const { updateUserCredits } = require('../services/dataStore');
+    await updateUserCredits(user_id, 50);
   }
 
   res.json({
     success: true,
-    message: `${product.name} is now listed on Second Life Marketplace`,
+    message: `${product.name} is now listed on Second Life Marketplace. You earned 50 Green Credits!`,
     product: updatedProduct
   });
 });
@@ -243,10 +251,8 @@ router.get('/second-life', async (req, res) => {
       // E.g., if product id has an even number it goes to Delhi, odd to Mumbai, etc.
       // This creates the illusion of localized P2P inventory.
       const filtered = items.filter(item => {
-          const num = parseInt(item.id.replace(/[^0-9]/g, ''), 10) || 0;
-          if (region === 'Delhi') return num % 2 === 0;
-          if (region === 'Mumbai') return num % 2 !== 0;
-          return true; // Bangalore or others see all for now
+          if (!region) return true;
+          return item.current_region === region;
       });
       return res.json(filtered);
   }
