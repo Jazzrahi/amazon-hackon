@@ -1,0 +1,209 @@
+:root {
+      --navy-900: #0F1923;
+      --navy-800: #1A2734;
+      --navy-700: #232F3E;
+      --orange-500: #FF9900;
+      --white: #FFFFFF;
+      --gray-100: #F5F5F5;
+      --gray-200: #EAEDED;
+      --gray-300: #D5D9D9;
+      --gray-800: #0F1111;
+      --green-600: #007600;
+      --radius-sm: 8px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--gray-200);
+      color: var(--gray-800);
+    }
+
+    /* ─── HEADER ─── */
+    .header {
+      background: linear-gradient(180deg, var(--navy-900) 0%, var(--navy-700) 100%);
+      padding: 0 32px;
+    }
+
+    .header__inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      height: 64px;
+      gap: 32px;
+    }
+
+    .header__nav {
+      display: flex;
+      gap: 4px;
+      margin-left: auto;
+    }
+
+    .header__nav a {
+      color: rgba(255,255,255,0.75);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 8px 14px;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+
+    .header__nav a:hover {
+      color: var(--white);
+      background: rgba(255,255,255,0.08);
+    }
+
+    /* ─── CHECKOUT LAYOUT ─── */
+    .checkout-container {
+      max-width: 1000px;
+      margin: 32px auto;
+      display: flex;
+      gap: 24px;
+      padding: 0 32px;
+      align-items: flex-start;
+    }
+
+    .checkout-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .section-box {
+      background: var(--white);
+      padding: 24px;
+      border-radius: var(--radius-sm);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    h2 {
+      font-size: 22px;
+      margin-bottom: 16px;
+    }
+
+    .checkout-sidebar {
+      width: 320px;
+      background: var(--white);
+      padding: 24px;
+      border-radius: var(--radius-sm);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      position: sticky;
+      top: 24px;
+    }
+
+    /* ─── ITEMS LIST ─── */
+    .item-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .item-row {
+      display: flex;
+      gap: 16px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--gray-200);
+    }
+    .item-row:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .item-img {
+      width: 80px;
+      height: 80px;
+      object-fit: contain;
+      background: #f8f8f8;
+      border-radius: 4px;
+    }
+
+    .item-details { flex: 1; }
+    .item-name { font-weight: 500; margin-bottom: 4px; font-size: 15px;}
+    .item-price { font-weight: 700; color: #B12704; }
+
+    /* ─── CREDITS SECTION ─── */
+    .credits-box {
+      background: #f4fbf7;
+      border: 1px solid #a3d9b8;
+      padding: 16px;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .credits-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      color: var(--green-600);
+    }
+
+    .credits-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ─── SUMMARY ─── */
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      font-size: 15px;
+    }
+    .summary-total {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 700;
+      font-size: 20px;
+      color: #B12704;
+      border-top: 1px solid var(--gray-200);
+      padding-top: 16px;
+      margin-top: 16px;
+      margin-bottom: 24px;
+    }
+
+    .place-order-btn {
+      width: 100%;
+      background: #FFD814;
+      border: none;
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 2px 5px rgba(213,217,217,0.5);
+    }
+
+    .place-order-btn:hover {
+      background: #F7CA00;
+    }
+    .place-order-btn:disabled {
+      background: #ddd;
+      cursor: not-allowed;
+    }
+
+    .loader {
+      text-align: center;
+      padding: 40px;
+      font-size: 18px;
+      color: var(--gray-600);
+    }
+    
+    #success-screen {
+        display: none;
+        text-align: center;
+        padding: 48px;
+        background: #fff;
+        border-radius: 8px;
+        max-width: 600px;
+        margin: 40px auto;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
