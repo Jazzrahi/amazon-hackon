@@ -140,10 +140,17 @@ router.post('/process-return', async (req, res) => {
   });
 
   let pickupResult = null;
+  const { getDB } = require('../services/dataStore');
+  const db = await getDB();
+
   if (!fraudDetected) {
     const deliveryRoutes = await getAllDeliveryRoutes();
     pickupResult = schedulePickup(user.area, deliveryRoutes);
+    await db.run(`INSERT INTO audit_logs (event_type, details) VALUES (?, ?)`, ['return_processed', JSON.stringify({ user_id, product_id, tier: routingResult.tier })]);
   } else {
+    await db.run(`INSERT INTO fraud_flags (user_id, reason) VALUES (?, ?)`, [user_id, explanation]);
+    await db.run(`INSERT INTO audit_logs (event_type, details) VALUES (?, ?)`, ['fraud_detected', JSON.stringify({ user_id, product_id, explanation })]);
+
     // Emit real-time fraud alert to admin dashboard
     const io = req.app.get('io');
     if (io) {
@@ -368,6 +375,9 @@ router.post('/checkout-second-life', async (req, res) => {
     
     try {
         const product = await buySecondLifeItem(user_id, product_id);
+        const { getDB } = require('../services/dataStore');
+        const db = await getDB();
+        await db.run(`INSERT INTO audit_logs (event_type, details) VALUES (?, ?)`, ['checkout_second_life', JSON.stringify({ user_id, product_id })]);
         res.json({ success: true, message: 'Purchase successful', product });
     } catch (err) {
         console.error('Checkout error:', err);
@@ -387,6 +397,12 @@ router.post('/checkout-cart', async (req, res) => {
     
     try {
         const results = await checkoutCart(user_id, items, credits_used || 0);
+        const { getDB } = require('../services/dataStore');
+        const db = await getDB();
+        await db.run(`INSERT INTO audit_logs (event_type, details) VALUES (?, ?)`, ['checkout_cart', JSON.stringify({ user_id, items_count: items.length })]);
+        if (credits_used > 0) {
+            await db.run(`INSERT INTO audit_logs (event_type, details) VALUES (?, ?)`, ['credits_spent', JSON.stringify({ user_id, amount: credits_used })]);
+        }
         res.json({ success: true, message: 'Cart checked out successfully', orders: results });
     } catch (err) {
         console.error('Cart checkout error:', err);
@@ -652,6 +668,10 @@ router.get('/admin/demand-by-region', async (req, res) => {
         const regions = [...new Set(demandRows.map(d => d.region))].sort();
         const categories = [...new Set(demandRows.map(d => d.category))].sort();
 
+        if (regions.length === 0 || categories.length === 0) {
+            return res.json({ labels: ['Delhi', 'Mumbai', 'Bangalore'], datasets: [] });
+        }
+
         // Build datasets per category
         const datasets = categories.map(cat => {
             const scores = regions.map(reg => {
@@ -808,23 +828,34 @@ router.get('/transactions/:userId', async (req, res) => {
             }
         }
 
-        // Add "plant_tree" audit logs to transactions
+        // Add "plant_tree" and "credits_spent" audit logs to transactions
         const { getDB } = require('../services/dataStore');
         const db = await getDB();
-        const auditLogs = await db.all(`SELECT * FROM audit_logs WHERE event_type = 'plant_tree'`);
+        const auditLogs = await db.all(`SELECT * FROM audit_logs WHERE event_type IN ('plant_tree', 'credits_spent')`);
         for (const log of auditLogs) {
             try {
                 const details = JSON.parse(log.details);
                 if (details.user_id === userId) {
                     const dateStr = new Date(log.created_at + 'Z').toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
-                    transactions.push({
-                        type: 'spend',
-                        icon: '🌳',
-                        desc: `Planted a tree via SankalpTaru`,
-                        date: dateStr,
-                        amount: `-₹${details.amount}`,
-                        raw: 0
-                    });
+                    if (log.event_type === 'plant_tree') {
+                        transactions.push({
+                            type: 'spend',
+                            icon: '🌳',
+                            desc: `Planted a tree via SankalpTaru`,
+                            date: dateStr,
+                            amount: `-₹${details.amount}`,
+                            raw: 0
+                        });
+                    } else if (log.event_type === 'credits_spent') {
+                        transactions.push({
+                            type: 'spend',
+                            icon: '💳',
+                            desc: `Used credits at checkout`,
+                            date: dateStr,
+                            amount: `-₹${details.amount}`,
+                            raw: 0
+                        });
+                    }
                 }
             } catch (e) {}
         }
