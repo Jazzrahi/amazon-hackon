@@ -1,6 +1,6 @@
 # Amazon Second Life ♻️
 
-> **By Jasmine and Yashika** — Built for the Amazon HackOn Competition
+> **By YJ-424-Rocket** — Built for the Amazon HackOn Competition
 
 <div align="center">
   <img src="https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" />
