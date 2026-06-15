@@ -44,67 +44,37 @@ const CATEGORY_BASE_DEMAND = {
  * @returns {{demandScore: number, classification: string, confidence: number, factors: object}}
  */
 function getDemandScore(category, region, demandData) {
-  const currentMonth = new Date().getMonth();
-
-  // 1. Check DB for actual demand data
-  const entry = demandData.find(
+  // Find entry in demandData matching both category and region
+  const entry = Array.isArray(demandData) ? demandData.find(
     (record) => record.category === category && record.region === region
-  );
+  ) : null;
 
-  let baseScore = entry ? entry.demand_score : (CATEGORY_BASE_DEMAND[category] || 50);
-
-  // 2. Apply seasonal multiplier
-  const seasonalMultipliers = SEASONAL_MULTIPLIERS[category] || SEASONAL_MULTIPLIERS.clothing;
-  const seasonalFactor = seasonalMultipliers[currentMonth];
-  let adjustedScore = baseScore * seasonalFactor;
-
-  // 3. Apply regional weight
-  const regionalWeight = REGIONAL_WEIGHTS[region] || 1.0;
-  adjustedScore *= regionalWeight;
-
-  // 4. 7-day rolling trend vs 30-day baseline
-  // We simulate a rolling trend calculation. If the 7-day trend outpaces the 30-day baseline,
-  // we boost the score. We'll use a deterministic hash of region+category to simulate this.
-  const trendHash = (region.length + category.length) % 3; // 0, 1, or 2
-  let trendMultiplier = 1.0;
-  let trendIndicator = 'steady';
-  if (trendHash === 1) {
-      trendMultiplier = 1.15; // 7-day spike
-      trendIndicator = 'rising';
-  } else if (trendHash === 2) {
-      trendMultiplier = 0.90; // 7-day dip
-      trendIndicator = 'falling';
+  if (!entry) {
+    return {
+      demandScore: 0,
+      classification: 'low',
+      confidence: 0,
+      salesVelocity: 0,
+      factors: {}
+    };
   }
-  adjustedScore *= trendMultiplier;
 
-  // 5. Clamp to 0-100
-  adjustedScore = Math.max(0, Math.min(100, Math.round(adjustedScore)));
-
-  // 5. Classify demand
-  let classification;
-  if (adjustedScore >= 75) classification = 'high_demand';
-  else if (adjustedScore >= 45) classification = 'medium';
-  else classification = 'low_demand';
-
-  // 6. Confidence based on data availability
-  const confidence = entry ? 0.90 : 0.60; // Higher if we have real DB data
-
-  // 7. Sales velocity estimate (items/week in this category+region)
-  const salesVelocity = Math.round((adjustedScore / 100) * 15); // 0-15 items/week
+  const score = entry.demand_score;
+  const classification = score >= 60 ? 'high' : 'low';
 
   return {
-    demandScore: adjustedScore,
-    classification,
-    confidence,
-    salesVelocity,
+    demandScore: score,
+    classification: classification,
+    confidence: 1.0,
+    salesVelocity: Math.round((score / 100) * 15),
     factors: {
-      baseScore,
-      seasonalFactor: Math.round(seasonalFactor * 100) / 100,
-      regionalWeight: Math.round(regionalWeight * 100) / 100,
-      trendMultiplier,
-      trendIndicator,
+      baseScore: score,
+      seasonalFactor: 1.0,
+      regionalWeight: 1.0,
+      trendMultiplier: 1.0,
+      trendIndicator: 'stable',
       month: new Date().toLocaleString('en-IN', { month: 'long' }),
-      dataSource: entry ? 'database' : 'category_default'
+      dataSource: 'database'
     }
   };
 }

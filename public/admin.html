@@ -11,83 +11,75 @@
 </head>
 <body>
   <header class="header">
-    <div class="header-title">Second Life Admin</div>
-    <a href="/"><span>← Return to Storefront</span></a>
+    <div class="header-title">⚙️ Second Life Admin</div>
+    <a href="/">← Return to Storefront</a>
   </header>
-  
+
   <div class="container">
     <div class="dashboard-grid">
-      
-      <!-- Top Stats -->
+
+      <!-- Top Stats (real data, injected by admin.js) -->
       <div class="stats-row">
         <div class="card stat-card">
-          <div class="stat-value" style="color: var(--amazon-blue);">2,451</div>
-          <div class="stat-label">Total Returns (30d)</div>
+          <div class="stat-value" id="stat-total-returns" style="color: var(--amazon-blue);">—</div>
+          <div class="stat-label">Total Returns</div>
         </div>
-        <div class="stat-value card stat-card">
-          <div class="stat-value" style="color: var(--green-500);">64%</div>
-          <div class="stat-label">Saved via 2nd Life</div>
+        <div class="card stat-card">
+          <div class="stat-value" id="stat-saved-pct" style="color: var(--green-500);">—</div>
+          <div class="stat-label">Items Rescued (2nd Life)</div>
         </div>
-        <div class="stat-value card stat-card">
-          <div class="stat-value" style="color: var(--amazon-orange);">1,840 kg</div>
+        <div class="card stat-card">
+          <div class="stat-value" id="stat-co2" style="color: var(--amazon-orange);">—</div>
           <div class="stat-label">CO₂ Emissions Prevented</div>
         </div>
-        <div class="stat-value card stat-card">
-          <div class="stat-value" style="color: var(--red-500);">3.2%</div>
-          <div class="stat-label">Fraud Rejection Rate</div>
+        <div class="card stat-card">
+          <div class="stat-value" id="stat-credits" style="color: var(--green-500);">—</div>
+          <div class="stat-label">Green Credits Issued</div>
         </div>
       </div>
 
-      <!-- Main Routing Chart -->
+      <!-- Return Routing Chart (real data) -->
       <div class="card routing-chart">
         <h3>🔄 Return Routing Decisions</h3>
-        <canvas id="routingChart" height="250"></canvas>
+        <p class="chart-sub">Live breakdown of how returns are handled across all users</p>
+        <canvas id="routingChart" height="240"></canvas>
       </div>
 
-      <!-- Active Fraud Flags -->
+      <!-- Active Fraud Flags (real-time via socket.io) -->
       <div class="card fraud-alerts">
         <h3>🚨 Active Fraud Flags</h3>
-        <ul class="fraud-list">
-          <li class="fraud-item">
+        <p class="chart-sub">Real-time alerts from AI image validation</p>
+        <ul class="fraud-list" id="fraud-list">
+          <li class="fraud-item fraud-item--empty">
             <div class="fraud-item__details">
-              <div class="fraud-item__user">user_883</div>
-              <div class="fraud-item__reason">Image mismatch (Uploaded photo of dog for iPhone)</div>
+              <div class="fraud-item__reason" style="color:#888;font-style:italic">
+                No fraud flags yet. Alerts appear here in real-time when AI detects a suspicious return.
+              </div>
             </div>
-            <div class="fraud-item__time">2m ago</div>
-          </li>
-          <li class="fraud-item">
-            <div class="fraud-item__details">
-              <div class="fraud-item__user">user_102</div>
-              <div class="fraud-item__reason">Bill verification failed (Date outside 30d window)</div>
-            </div>
-            <div class="fraud-item__time">15m ago</div>
-          </li>
-          <li class="fraud-item">
-            <div class="fraud-item__details">
-              <div class="fraud-item__user">user_944</div>
-              <div class="fraud-item__reason">Condition dispute (Claimed 'Like New', AI scored 20/100)</div>
-            </div>
-            <div class="fraud-item__time">1h ago</div>
-          </li>
-          <li class="fraud-item">
-            <div class="fraud-item__details">
-              <div class="fraud-item__user">user_419</div>
-              <div class="fraud-item__reason">Trust score too low (Multiple recent rejections)</div>
-            </div>
-            <div class="fraud-item__time">3h ago</div>
           </li>
         </ul>
       </div>
 
-      <!-- Regional Demand Heatmap -->
+      <!-- Regional Demand Heatmap (real data) -->
       <div class="card demand-heatmap">
         <h3>📈 Resale Demand by Region</h3>
-        <canvas id="demandChart" height="200"></canvas>
+        <p class="chart-sub">Live demand scores from database — updates via socket</p>
+        <canvas id="demandChart" height="240"></canvas>
+      </div>
+
+      <!-- Green Credits Leaderboard (real data) -->
+      <div class="card leaderboard-card">
+        <h3>🏆 Green Credits Leaderboard</h3>
+        <p class="chart-sub">Top users by sustainability credits earned</p>
+        <ul class="fraud-list" id="leaderboard-list">
+          <li class="fraud-item"><div class="fraud-item__reason" style="color:#888">Loading…</div></li>
+        </ul>
       </div>
 
       <!-- AI Model Performance -->
       <div class="card model-perf">
         <h3>🤖 Vision AI Performance</h3>
+        <p class="chart-sub">Gemini 2.0 Flash — current session metrics</p>
         <div class="perf-metrics">
           <div class="perf-metric">
             <span class="perf-label">Model Engine</span>

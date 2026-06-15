@@ -89,7 +89,7 @@
       try {
         const txRes = await fetch(`/api/transactions/${userId}`);
         const txData = await txRes.json();
-        const txContainer = document.getElementById('transactions-list');
+        const txContainer = document.getElementById('transactions');
         if (txContainer) {
           if (!txData.transactions || txData.transactions.length === 0) {
             txContainer.innerHTML = `<div style="padding:24px;text-align:center;color:var(--gray-400);font-size:13px;">No activity yet — start returning smart to earn credits! 🌱</div>`;
@@ -123,13 +123,67 @@
 
       animateValue(document.getElementById('imp-co2'), stats.total_co2_saved_kg, '', '', 1800);
       animateValue(document.getElementById('imp-items'), stats.items_rescued, '', '', 1200);
-      animateValue(document.getElementById('imp-trees'), Math.round(stats.total_co2_saved_kg / 21), '', '', 2000);
+      animateValue(document.getElementById('imp-trees'), Math.round(stats.total_co2_saved_kg / 21) + (stats.trees_planted || 0), '', '', 2000);
       animateValue(document.getElementById('imp-ewaste'), stats.ewaste_prevented_kg, '', '', 1600);
 
     } catch (e) {
       console.error('[GreenCredits]', e);
     }
   }
+
+  function showToast(message, isError = false) {
+    const toast = document.createElement('div');
+    toast.textContent = message;
+    toast.style.position = 'fixed';
+    toast.style.bottom = '24px';
+    toast.style.right = '24px';
+    toast.style.background = isError ? '#E53935' : '#00A86B';
+    toast.style.color = '#FFFFFF';
+    toast.style.padding = '12px 20px';
+    toast.style.borderRadius = '8px';
+    toast.style.fontWeight = '600';
+    toast.style.fontSize = '14px';
+    toast.style.boxShadow = '0 4px 14px rgba(0,0,0,0.15)';
+    toast.style.zIndex = '999999';
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(20px)';
+    toast.style.transition = 'all 0.3s ease-out';
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+      toast.style.opacity = '1';
+      toast.style.transform = 'translateY(0)';
+    }, 50);
+    
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateY(20px)';
+      setTimeout(() => toast.remove(), 300);
+    }, 3000);
+  }
+
+  async function plantTree() {
+    try {
+      const res = await fetch('/api/plant-tree', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: userId })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        showToast(data.error || 'Failed to plant tree', true);
+        return;
+      }
+      showToast('🌳 ' + data.message);
+      init(); // Reload stats and transactions
+    } catch (e) {
+      console.error(e);
+      showToast('Error planting tree', true);
+    }
+  }
+
+  document.getElementById('plant-tree-btn1').addEventListener('click', plantTree);
+  document.getElementById('plant-tree-btn2').addEventListener('click', plantTree);
 
   init();
 })();
