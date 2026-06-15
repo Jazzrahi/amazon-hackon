@@ -120,6 +120,22 @@
       overflow-x: auto;
     }
 
+    .subnav a {
+      color: rgba(255,255,255,0.85);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 4px 8px;
+      border-radius: 4px;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+
+    .subnav a:hover {
+      color: var(--white);
+      background: rgba(255,255,255,0.08);
+    }
+
     .product-switcher {
       display: flex;
       gap: 6px;
@@ -624,15 +640,17 @@
 
   <!-- Amazon Sub-nav -->
   <div class="subnav">
-    <a href="#">☰ All</a>
-    <a href="#">Fresh</a>
-    <a href="#">Amazon miniTV</a>
-    <a href="#">Sell</a>
-    <a href="#">Best Sellers</a>
-    <a href="#">Mobiles</a>
-    <a href="#">Today's Deals</a>
-    <a href="#">Customer Service</a>
-    <a href="#">Electronics</a>
+    <div class="subnav__inner">
+      <a href="#">☰ All</a>
+      <a href="#">Fresh</a>
+      <a href="#">Amazon miniTV</a>
+      <a href="#">Sell</a>
+      <a href="#">Best Sellers</a>
+      <a href="#">Mobiles</a>
+      <a href="#">Today's Deals</a>
+      <a href="#">Customer Service</a>
+      <a href="#">Electronics</a>
+    </div>
   </div>
 
   <!-- Breadcrumb -->

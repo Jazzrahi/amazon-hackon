@@ -716,46 +716,7 @@
       <div class="section-card">
         <div class="section-card__header">📝 Credit History</div>
         <div id="transactions">
-          <div class="transaction">
-            <div class="transaction__icon transaction__icon--earn">🌱</div>
-            <div class="transaction__info">
-              <div class="transaction__desc">Kept Cotton Kurta — Green Credit</div>
-              <div class="transaction__date">Jun 10, 2026</div>
-            </div>
-            <div class="transaction__amount transaction__amount--earn">+₹650</div>
-          </div>
-          <div class="transaction">
-            <div class="transaction__icon transaction__icon--earn">♻️</div>
-            <div class="transaction__info">
-              <div class="transaction__desc">Recycled USB Cable — Eco Reward</div>
-              <div class="transaction__date">Jun 7, 2026</div>
-            </div>
-            <div class="transaction__amount transaction__amount--earn">+₹30</div>
-          </div>
-          <div class="transaction">
-            <div class="transaction__icon transaction__icon--spend">🛒</div>
-            <div class="transaction__info">
-              <div class="transaction__desc">Used credits on Headphones purchase</div>
-              <div class="transaction__date">Jun 3, 2026</div>
-            </div>
-            <div class="transaction__amount transaction__amount--spend">-₹200</div>
-          </div>
-          <div class="transaction">
-            <div class="transaction__icon transaction__icon--earn">💜</div>
-            <div class="transaction__info">
-              <div class="transaction__desc">Donated Anklet to Goonj Foundation</div>
-              <div class="transaction__date">May 28, 2026</div>
-            </div>
-            <div class="transaction__amount transaction__amount--earn">+₹50</div>
-          </div>
-          <div class="transaction">
-            <div class="transaction__icon transaction__icon--earn">🌱</div>
-            <div class="transaction__info">
-              <div class="transaction__desc">Welcome Bonus — First Eco Action</div>
-              <div class="transaction__date">May 20, 2026</div>
-            </div>
-            <div class="transaction__amount transaction__amount--earn">+₹100</div>
-          </div>
+          <!-- Dynamic transactions will be inserted here by JS -->
         </div>
       </div>
 
@@ -897,6 +858,55 @@
           animateValue(document.getElementById('imp-items'), stats.items_rescued, '', '', 1200);
           animateValue(document.getElementById('imp-trees'), Math.round(stats.total_co2_saved_kg / 21), '', '', 2000);
           animateValue(document.getElementById('imp-ewaste'), stats.ewaste_prevented_kg, '', '', 1600);
+
+          // Dynamically load transactions based on orders
+          const ordersRes = await fetch(`/api/orders/${userId}`);
+          const orders = await ordersRes.json();
+          const txContainer = document.getElementById('transactions');
+          txContainer.innerHTML = ''; // clear
+
+          let hasTx = false;
+          orders.forEach(o => {
+            if (o.status === 'credit_accepted' || o.status === 'resale_listed' || o.status === 'partial_refund') {
+              hasTx = true;
+              const dateStr = new Date(o.order_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+              
+              let desc = '', amount = '', icon = '', amountClass = 'transaction__amount--earn';
+              if (o.status === 'credit_accepted' || o.status === 'partial_refund') {
+                desc = `Kept Flawed Item (Order ${o.order_id}) — Green Credit & Refund`;
+                amount = '+₹650'; // Using placeholder amount or we could just show +Credits
+                icon = '🌱';
+              } else if (o.status === 'resale_listed') {
+                desc = `Listed Order ${o.order_id} on Second Life`;
+                amount = '+50 💚';
+                icon = '♻️';
+              }
+              
+              const div = document.createElement('div');
+              div.className = 'transaction';
+              div.innerHTML = `
+                <div class="transaction__icon transaction__icon--earn">${icon}</div>
+                <div class="transaction__info">
+                  <div class="transaction__desc">${desc}</div>
+                  <div class="transaction__date">${dateStr}</div>
+                </div>
+                <div class="transaction__amount ${amountClass}">${amount}</div>
+              `;
+              txContainer.appendChild(div);
+            }
+          });
+
+          // Add a default welcome bonus so it's never empty
+          txContainer.insertAdjacentHTML('beforeend', `
+            <div class="transaction">
+              <div class="transaction__icon transaction__icon--earn">🌱</div>
+              <div class="transaction__info">
+                <div class="transaction__desc">Welcome Bonus — First Eco Action</div>
+                <div class="transaction__date">May 20, 2026</div>
+              </div>
+              <div class="transaction__amount transaction__amount--earn">+₹100</div>
+            </div>
+          `);
 
         } catch (e) {
           console.error('[GreenCredits]', e);
