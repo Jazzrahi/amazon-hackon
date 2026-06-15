@@ -11,13 +11,15 @@
 
 ---
 
-## 1. 🚀 PROJECT OVERVIEW & VALUE PROPOSITION
+## 1. 🚀 THE PROBLEM: RETURNS ARE EXPENSIVE FOR EVERYONE
 
-Retail returns are a **$743B problem** annually, functioning as a massive cost center and generating egregious carbon emissions through inefficient reverse logistics. Most returns end up in landfills or suffer complete margin erosion due to the exorbitant costs of shipping, inspecting, grading, and restocking.
+> **"Millions of products bought online are returned, underused, or discarded despite being perfectly usable. Returns are expensive for customers, sellers, and the planet."** — *Amazon HackOn Problem Statement*
 
-**Amazon Second Life** transforms this linear, wasteful pipeline into a sustainable, hyper-localized circular economy. By leveraging Google Gemini 2.5-flash vision models to instantly grade item conditions at the edge (via customer-uploaded photos), our AI-powered engine dynamically routes returns to maximize margin recovery and minimize carbon footprints.
+Retail returns are a **$743B problem** annually. Beyond the massive financial cost center for Amazon and its sellers, reverse logistics generates egregious carbon emissions. Furthermore, customers struggle to trust refurbished or second-hand products, leading to perfectly usable items ending up in landfills.
 
-**We are not just solving returns; we are inventing a new revenue stream rooted in sustainability.**
+**Our HackOn Solution:** What if Amazon could create an intelligent ecosystem where returned or unused products automatically find their next best owner? 
+
+**Amazon Second Life** is a full-stack, AI-powered circular economy platform that transforms this linear, wasteful pipeline into a sustainable revenue stream. By leveraging Google Gemini 2.5-flash vision models to instantly grade item conditions at the edge, our AI automatically decides whether an item should be **resold locally, kept for green credits, or recycled**. We empower easy peer-to-peer resale inside Amazon's trusted ecosystem while incentivizing sustainable customer behavior.
 
 ---
 
