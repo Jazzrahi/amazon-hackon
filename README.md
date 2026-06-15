@@ -1,6 +1,6 @@
 # Amazon Second Life ♻️
 
-> **By Team Antigravity** — Built for the Amazon HackOn Competition
+> **By Jasmine and Yashika** — Built for the Amazon HackOn Competition
 
 <div align="center">
   <img src="https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" />
@@ -95,7 +95,10 @@ echo "GEMINI_API_KEY=your_gemini_api_key_here" >> .env
 # 4. Boot the application
 npm start
 ```
-*The server will initialize on `http://localhost:3001`.*
+
+### 🏃 HOW TO RUN IT
+After running `npm start`, the server will initialize. **Open your web browser and navigate to:**
+`http://localhost:3001`
 
 ---
 
@@ -107,4 +110,4 @@ While built for speed during HackOn, the architecture is designed with Amazon's 
 *   **Data Integrity:** Comprehensive audit logging tables tracking every state mutation from initial return request to final disposition.
 *   **Sustainability Metrics:** Live analytical tracking of `E-Waste Prevented (kg)` and `Carbon Footprint Saved (kg CO2)` visible on the admin dashboard, providing verifiable ESG reporting.
 
-*Built with Customer Obsession and Frugality by Team Antigravity.*
+*Built with Customer Obsession and Frugality by Jasmine and Yashika.*
