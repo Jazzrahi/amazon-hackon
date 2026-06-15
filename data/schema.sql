@@ -6,7 +6,8 @@ CREATE TABLE IF NOT EXISTS users (
     trust_score INTEGER NOT NULL,
     green_credits INTEGER NOT NULL DEFAULT 0,
     region TEXT NOT NULL,
-    area TEXT NOT NULL
+    area TEXT NOT NULL,
+    trees_planted INTEGER DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS products (

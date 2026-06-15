@@ -101,8 +101,9 @@
         card.style.animationDelay = `${idx * 60}ms`;
 
         // Timeline
-        const isDelivered = order.status === 'delivered';
+        const isDelivered = order.status === 'delivered' || order.status === 'p2p_local_delivery';
         const isReturned = order.returned;
+        const showDeliverBtn = (order.status === 'processing' || order.status === 'p2p_processing') && !isReturned;
 
         card.innerHTML = `
           <div class="order-card__top">
@@ -114,9 +115,15 @@
                 <span class="order-card__id">${escapeHtml(order.order_id)}</span>
                 ${isReturned
                   ? '<span class="status-badge status-badge--returned">↩ Returned</span>'
-                  : isDelivered
+                  : order.status === 'delivered'
                     ? '<span class="status-badge status-badge--delivered">✓ Delivered</span>'
-                    : ''
+                    : order.status === 'p2p_local_delivery'
+                      ? '<span class="status-badge status-badge--delivered">✓ P2P Delivered</span>'
+                      : order.status === 'processing'
+                        ? '<span class="status-badge status-badge--processing">⌛ Processing</span>'
+                        : order.status === 'p2p_processing'
+                          ? '<span class="status-badge status-badge--p2p-processing">⌛ Out for P2P Delivery</span>'
+                          : ''
                 }
               </div>
             </div>
@@ -152,12 +159,36 @@
               🤖 Smart Return — AI-Powered
             </button>
           ` : ''}
+
+          ${showDeliverBtn ? `
+            <button class="btn-deliver" data-order="${escapeHtml(order.order_id)}">
+              📦 Mark as Delivered
+            </button>
+          ` : ''}
         `;
 
         // Smart Return click
         if (eligible) {
           card.querySelector('.btn-return').addEventListener('click', function () {
             window.location.href = `return-flow.html?user_id=${currentUserId}&product_id=${this.dataset.product}`;
+          });
+        }
+
+        // Deliver click
+        if (showDeliverBtn) {
+          card.querySelector('.btn-deliver').addEventListener('click', async function () {
+            const orderId = this.dataset.order;
+            try {
+              const res = await fetch(`/api/orders/${orderId}/deliver`, { method: 'POST' });
+              if (res.ok) {
+                loadAll();
+              } else {
+                alert('Failed to mark order as delivered.');
+              }
+            } catch (e) {
+              console.error('Error delivering order:', e);
+              alert('Error marking order as delivered.');
+            }
           });
         }
 

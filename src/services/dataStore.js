@@ -93,7 +93,7 @@ async function getAllDeliveryRoutes() {
 
 async function getOrder(userId, productId) {
     const db = await getDB();
-    return db.get(`SELECT * FROM orders WHERE user_id = ? AND product_id = ?`, [userId, productId]);
+    return db.get(`SELECT * FROM orders WHERE user_id = ? AND product_id = ? ORDER BY returned ASC, order_date DESC LIMIT 1`, [userId, productId]);
 }
 
 async function markOrderReturned(orderId, returnType) {
@@ -135,7 +135,7 @@ async function buySecondLifeItem(userId, productId) {
     const db = await getDB();
     
     const item = await getProductById(productId);
-    let deliveryType = 'delivered';
+    let deliveryType = 'processing';
 
     if (item && item.inventory_owner && item.inventory_owner.startsWith('seller_')) {
         const sellerId = item.inventory_owner.replace('seller_', '');
@@ -143,7 +143,7 @@ async function buySecondLifeItem(userId, productId) {
             const seller = await getUserById(sellerId);
             const buyer = await getUserById(userId);
             if (seller && buyer && seller.area === buyer.area) {
-                deliveryType = 'p2p_local_delivery';
+                deliveryType = 'p2p_processing';
                 await updateUserCredits(sellerId, 100);
             }
         }
@@ -180,7 +180,7 @@ async function checkoutCart(userId, items, creditsUsed) {
     
     for (const item of items) {
         const orderId = 'ord_' + Math.floor(Math.random() * 1000000);
-        let deliveryType = 'delivered';
+        let deliveryType = 'processing';
         
         // If it's a second life item currently owned by amazon or seller, transfer ownership
         if (item.inventory_owner === 'amazon' || (item.inventory_owner && item.inventory_owner.startsWith('seller_'))) {
@@ -192,7 +192,7 @@ async function checkoutCart(userId, items, creditsUsed) {
                     const seller = await getUserById(sellerId);
                     const buyer = await getUserById(userId);
                     if (seller && buyer && seller.area === buyer.area) {
-                        deliveryType = 'p2p_local_delivery';
+                        deliveryType = 'p2p_processing';
                         // Award seller 100 green credits for local dropoff
                         await updateUserCredits(sellerId, 100);
                     }
@@ -211,6 +211,18 @@ async function checkoutCart(userId, items, creditsUsed) {
     }
     
     return results;
+}
+
+async function markOrderDelivered(orderId) {
+    const db = await getDB();
+    const order = await db.get(`SELECT status FROM orders WHERE order_id = ?`, [orderId]);
+    if (!order) return null;
+    let newStatus = 'delivered';
+    if (order.status === 'p2p_processing') {
+        newStatus = 'p2p_local_delivery';
+    }
+    await db.run(`UPDATE orders SET status = ? WHERE order_id = ?`, [newStatus, orderId]);
+    return db.get(`SELECT * FROM orders WHERE order_id = ?`, [orderId]);
 }
 
 module.exports = {
@@ -234,5 +246,7 @@ module.exports = {
   getAllUsers,
   buySecondLifeItem,
   checkoutCart,
-  getTopUsers
+  getTopUsers,
+  markOrderDelivered,
+  getDB
 };

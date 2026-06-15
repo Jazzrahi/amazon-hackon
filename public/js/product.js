@@ -239,68 +239,21 @@ function updateGlobalCartCount() {
     async function buyNow(event) {
       const btn = event.target || document.querySelector('.btn-buy--now');
       const originalText = btn.innerHTML;
-      btn.disabled = true;
       btn.innerHTML = '<span style="opacity:0.6">Processing...</span>';
 
       const product = getCurrentProduct();
-      const userId = new URLSearchParams(window.location.search).get('user_id') || localStorage.getItem('active_user') || 'user_001';
-
-      try {
-        const response = await fetch('/api/orders', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user_id: userId, product_id: product.id })
-        });
-        
-        if (!response.ok) {
-           const errData = await response.json().catch(() => ({}));
-           throw new Error(errData.error || 'Order failed');
-        }
-
-        // Show success state on button
-        btn.innerHTML = '✓ Order Confirmed!';
-        btn.style.background = '#00A86B';
-        btn.style.color = '#FFF';
-
-        // Clear the cart
-        localStorage.removeItem('cart_' + (localStorage.getItem('active_user') || 'user_001'));
+      
+      // Add to cart if not already there
+      let cart = JSON.parse(localStorage.getItem('cart_' + (localStorage.getItem('active_user') || 'user_001'))) || [];
+      if (!cart.some(i => i.id === product.id)) {
+        cart.push(product);
+        localStorage.setItem('cart_' + (localStorage.getItem('active_user') || 'user_001'), JSON.stringify(cart));
         if (typeof updateGlobalCartCount === 'function') updateGlobalCartCount();
         window.dispatchEvent(new Event('storage'));
-
-        // Show overlay with redirect message
-        const overlay = document.createElement('div');
-        overlay.style.position = 'fixed';
-        overlay.style.top = '0';
-        overlay.style.left = '0';
-        overlay.style.width = '100%';
-        overlay.style.height = '100%';
-        overlay.style.background = 'rgba(0,0,0,0.4)';
-        overlay.style.display = 'flex';
-        overlay.style.alignItems = 'center';
-        overlay.style.justifyContent = 'center';
-        overlay.style.zIndex = '999998';
-
-        const modal = document.createElement('div');
-        modal.style.background = '#fff';
-        modal.style.padding = '24px 32px';
-        modal.style.borderRadius = '12px';
-        modal.style.boxShadow = '0 6px 20px rgba(0,0,0,0.2)';
-        modal.style.maxWidth = '320px';
-        modal.style.textAlign = 'center';
-        modal.style.fontWeight = '600';
-        modal.textContent = 'Purchase confirmed! Redirecting to Orders...';
-        overlay.appendChild(modal);
-        document.body.appendChild(overlay);
-
-        setTimeout(() => {
-          window.location.href = `/orders.html?user_id=${userId}`;
-        }, 1500);
-
-      } catch (err) {
-        btn.disabled = false;
-        btn.innerHTML = originalText;
-        alert('Purchase failed: ' + err.message);
       }
+
+      // Redirect to checkout
+      window.location.href = '/checkout.html';
     }
 
     document.addEventListener('DOMContentLoaded', () => {

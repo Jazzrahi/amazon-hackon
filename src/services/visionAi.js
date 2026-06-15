@@ -2,24 +2,39 @@ const { GoogleGenAI } = require('@google/genai');
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-// Use gemini-2.0-flash (1500 req/day free). Change here to switch all calls.
-const GEMINI_MODEL = 'gemini-2.0-flash';
+// Models to try in order — different models have separate quota pools
+const GEMINI_MODELS = ['gemini-2.0-flash-lite', 'gemini-2.5-flash', 'gemini-2.0-flash'];
+let currentModelIndex = 0;
 
-// Retry helper: waits and retries on 429 rate limit errors
-async function callWithRetry(fn, maxRetries = 2) {
-  for (let attempt = 0; attempt <= maxRetries; attempt++) {
-    try {
-      return await fn();
-    } catch (err) {
-      if (err.status === 429 && attempt < maxRetries) {
-        const waitSec = Math.min(15, 5 * (attempt + 1));
-        console.log(`[VisionAI] Rate limited. Waiting ${waitSec}s before retry ${attempt + 1}/${maxRetries}...`);
-        await new Promise(r => setTimeout(r, waitSec * 1000));
-      } else {
-        throw err;
+function getModel() {
+  return GEMINI_MODELS[currentModelIndex] || GEMINI_MODELS[0];
+}
+
+// Retry helper: tries current model with retries, then falls back to next model
+async function callWithRetry(fn, maxRetries = 1) {
+  for (let modelAttempt = 0; modelAttempt < GEMINI_MODELS.length; modelAttempt++) {
+    const model = GEMINI_MODELS[(currentModelIndex + modelAttempt) % GEMINI_MODELS.length];
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        return await fn(model);
+      } catch (err) {
+        if (err.status === 429 || err.status === 404 || err.status === 503) {
+          if (err.status !== 429 || attempt >= maxRetries) {
+            console.log(`[VisionAI] ${model} ${err.status === 429 ? 'quota exhausted' : err.status === 404 ? 'not found' : 'unavailable'}. Trying next model...`);
+            break; // try next model
+          }
+          const waitSec = Math.min(10, 3 * (attempt + 1));
+          console.log(`[VisionAI] ${model} rate limited. Waiting ${waitSec}s (retry ${attempt + 1}/${maxRetries})...`);
+          await new Promise(r => setTimeout(r, waitSec * 1000));
+        } else {
+          throw err;
+        }
       }
     }
   }
+  // All models exhausted
+  console.error('[VisionAI] All models quota exhausted.');
+  return null;
 }
 
 const crypto = require('crypto');
@@ -85,8 +100,8 @@ async function analyzeImage(base64Image, mimeType, expectedCategory, productName
       }
     `;
 
-    const response = await callWithRetry(() => ai.models.generateContent({
-      model: GEMINI_MODEL,
+    const response = await callWithRetry((model) => ai.models.generateContent({
+      model,
       contents: [
         {
           role: 'user',
@@ -106,6 +121,7 @@ async function analyzeImage(base64Image, mimeType, expectedCategory, productName
       }
     }));
 
+    if (!response) return null; // All models exhausted
     const resultText = response.text;
     const jsonResult = JSON.parse(resultText);
 
@@ -176,8 +192,8 @@ async function analyzeBill(base64Image, mimeType, expectedProduct) {
       }
     `;
 
-    const response = await callWithRetry(() => ai.models.generateContent({
-      model: GEMINI_MODEL,
+    const response = await callWithRetry((model) => ai.models.generateContent({
+      model,
       contents: [
         {
           role: 'user',
@@ -197,17 +213,18 @@ async function analyzeBill(base64Image, mimeType, expectedProduct) {
       }
     }));
 
+    if (!response) return null;
     const resultText = response.text;
     const resultJson = JSON.parse(resultText);
 
     const result = {
-      isBill: resultJson.isBill !== false,
-      productMatch: resultJson.productMatch !== false,
+      isBill: resultJson.isBill === true,
+      productMatch: resultJson.productMatch === true,
       withinReturnWindow: resultJson.withinReturnWindow !== false,
       dateReadable: resultJson.dateReadable !== false,
       confidence: typeof resultJson.confidence === 'number' ? resultJson.confidence : 50,
       explanation: resultJson.explanation || 'Analyzed by AI Vision.',
-      isValid: resultJson.isBill && (resultJson.productMatch !== false)
+      isValid: resultJson.isBill === true && resultJson.productMatch === true
     };
     
     cacheAnalyzeBill.set(cacheKey, result);
@@ -259,8 +276,8 @@ async function validateReason(base64Image, mimeType, expectedProduct, reason, cu
       }
     `;
 
-    const response = await callWithRetry(() => ai.models.generateContent({
-      model: GEMINI_MODEL,
+    const response = await callWithRetry((model) => ai.models.generateContent({
+      model,
       contents: [
         {
           role: 'user',
@@ -280,11 +297,12 @@ async function validateReason(base64Image, mimeType, expectedProduct, reason, cu
       }
     }));
 
+    if (!response) return null;
     const resultText = response.text;
     const resultJson = JSON.parse(resultText);
 
     const result = {
-      match: resultJson.match !== false,
+      match: resultJson.match === true,
       confidence: typeof resultJson.confidence === 'number' ? resultJson.confidence : 50,
       explanation: resultJson.explanation || 'Analyzed by AI Vision.'
     };
@@ -331,8 +349,8 @@ async function predictFit(base64Image, mimeType, productName, category, size) {
       }
     `;
 
-    const response = await callWithRetry(() => ai.models.generateContent({
-      model: GEMINI_MODEL,
+    const response = await callWithRetry((model) => ai.models.generateContent({
+      model,
       contents: [
         {
           role: 'user',
@@ -352,6 +370,7 @@ async function predictFit(base64Image, mimeType, productName, category, size) {
       }
     }));
 
+    if (!response) return null;
     const resultText = response.text;
     const result = JSON.parse(resultText);
 

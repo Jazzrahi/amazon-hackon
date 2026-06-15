@@ -67,7 +67,8 @@
       // ── Render a product card ──
       function renderCard(item, idx) {
         const gc = gradeClass(item.grade);
-        const discount = Math.round(((item.price - item.resale_price) / item.price) * 100);
+        const resalePrice = item.resale_price || Math.round(item.price * 0.7);
+        const discount = Math.round(((item.price - resalePrice) / item.price) * 100);
         const rating = mockRating();
 
         const card = document.createElement('div');
@@ -96,7 +97,7 @@
             <div class="product-card__category">${escapeHtml(item.category)}</div>
             <h3 class="product-card__name">${escapeHtml(item.name)}</h3>
             <div class="product-card__pricing">
-              <span class="product-card__resale-price">₹${item.resale_price.toLocaleString('en-IN')}</span>
+              <span class="product-card__resale-price">₹${resalePrice.toLocaleString('en-IN')}</span>
               <span class="product-card__original-price">₹${item.price.toLocaleString('en-IN')}</span>
               <span class="product-card__discount" style="background: #E53935; color: white; padding: 2px 6px; border-radius: 4px; font-weight: 800;">${discount}% off</span>
             </div>
@@ -166,7 +167,8 @@
         window.currentModalItem = item; // Store for addToCart
 
         const gc = gradeClass(item.grade);
-        const discount = Math.round(((item.price - item.resale_price) / item.price) * 100);
+        const resalePrice = item.resale_price || Math.round(item.price * 0.7);
+        const discount = Math.round(((item.price - resalePrice) / item.price) * 100);
 
         modalBody.innerHTML = `
           <h2 class="modal__product-name">${escapeHtml(item.name)}</h2>
@@ -192,7 +194,7 @@
           <div class="modal__section">
             <p class="modal__section-label">Pricing</p>
             <div class="modal__pricing-row">
-              <span class="modal__big-price">₹${item.resale_price.toLocaleString('en-IN')}</span>
+              <span class="modal__big-price">₹${resalePrice.toLocaleString('en-IN')}</span>
               <span class="modal__old-price">₹${item.price.toLocaleString('en-IN')}</span>
               <span class="modal__savings-pill">Save ${discount}%</span>
             </div>
@@ -207,7 +209,7 @@
           </div>
 
           <div style="display: flex; gap: 12px;">
-            <button class="modal__cta-btn" style="flex: 1; background: #FF9900; color: #111;" onclick="buyNow()">⚡ Buy Now — ₹${item.resale_price.toLocaleString('en-IN')}</button>
+            <button class="modal__cta-btn" style="flex: 1; background: #FF9900; color: #111;" onclick="buyNow()">⚡ Buy Now — ₹${resalePrice.toLocaleString('en-IN')}</button>
             <button class="modal__cta-btn" style="flex: 1; background: #f3f3f3; color: #333; border: 1px solid #ddd;" onclick="addToCart()">🛒 Add to Cart</button>
           </div>
         `;
@@ -225,28 +227,17 @@
       window.buyNow = async function() {
         if (!window.currentModalItem) return;
         
-        try {
-          const res = await fetch('/api/checkout-second-life', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              user_id: currentUser,
-              product_id: window.currentModalItem.id
-            })
-          });
-          
-          if (!res.ok) throw new Error('Checkout failed');
-          
-          closeModal();
-          showToast('🎉 Purchase successful! Item removed from stocks.');
-          
-          // Reload items to update stocks
-          loadItems();
-          
-        } catch (err) {
-          console.error(err);
-          showToast('❌ Failed to process checkout. Please try again.');
+        // Add item to cart if not already present
+        let cart = JSON.parse(localStorage.getItem('cart_' + (localStorage.getItem('active_user') || 'user_001'))) || [];
+        if (!cart.some(i => i.id === window.currentModalItem.id)) {
+            cart.push(window.currentModalItem);
+            localStorage.setItem('cart_' + (localStorage.getItem('active_user') || 'user_001'), JSON.stringify(cart));
+            if (typeof updateGlobalCartCount === 'function') updateGlobalCartCount();
+            window.dispatchEvent(new Event('storage'));
         }
+        
+        // Redirect to checkout page
+        window.location.href = '/checkout.html';
       };
 
       window.addToCart = function() {

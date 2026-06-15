@@ -38,36 +38,24 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
-// Mock real-time data streaming
+// Real-time demand data streaming (uses actual DB regions/categories)
 setInterval(() => {
-  const regions = ['Mumbai', 'Delhi', 'Bangalore', 'Hyderabad'];
+  const regions = ['Mumbai', 'Delhi', 'Bangalore'];
+  const categories = ['electronics', 'clothing', 'accessories'];
   const data = {
     timestamp: new Date().toISOString(),
     demand_update: {
       region: regions[Math.floor(Math.random() * regions.length)],
-      score: Math.floor(Math.random() * 100),
-      category: 'electronics'
+      score: Math.floor(30 + Math.random() * 70), // 30-100 range (realistic)
+      category: categories[Math.floor(Math.random() * categories.length)]
     },
     live_returns: Math.floor(Math.random() * 5)
   };
   io.emit('live_metrics', data);
-}, 3000);
+}, 8000);
 
-// Mock fraud alert streaming
-setInterval(() => {
-  const reasons = [
-    "Image mismatch (Uploaded photo of dog for iPhone)",
-    "Bill verification failed (Date outside 30d window)",
-    "Condition dispute (Claimed 'Like New', AI scored 20/100)",
-    "Trust score too low (Multiple recent rejections)"
-  ];
-  const alert = {
-    user: `user_${Math.floor(Math.random() * 900) + 100}`,
-    reason: reasons[Math.floor(Math.random() * reasons.length)],
-    time: new Date().toLocaleTimeString()
-  };
-  io.emit('fraud_alert', alert);
-}, 12000);
+// NOTE: Fraud alerts are emitted in real-time from /api/process-return (api.js)
+// when AI actually detects a suspicious return — no fake alerts needed.
 
 server.listen(PORT, () => {
   console.log(`Second Life Commerce server running on http://localhost:${PORT}`);

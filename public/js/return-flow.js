@@ -110,6 +110,7 @@ const params = new URLSearchParams(window.location.search);
            headers: { 'Content-Type': 'application/json' },
            body: JSON.stringify(payload)
          }).then(r => r.json());
+         returnData = data;
          showResult(data);
        } catch (e) {
          alert('Error processing return. Please try again.');
@@ -365,6 +366,33 @@ const params = new URLSearchParams(window.location.search);
       }
     }
 
+    async function acceptStandardReturn() {
+      const btn = document.querySelector('#result-standard_return .btn--primary');
+      if (btn) {
+        btn.textContent = 'Processing…';
+        btn.disabled = true;
+      }
+      try {
+        await fetch('/api/accept-standard-return', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: userId,
+            product_id: productId
+          })
+        });
+      } catch (err) {
+        console.error('Error accepting standard return:', err);
+      }
+      location.href = 'orders.html';
+    }
+
+    // Expose functions globally for HTML onclick handlers
+    window.acceptKeepItem = acceptKeepItem;
+    window.listForResale = listForResale;
+    window.acceptStandardReturn = acceptStandardReturn;
+    window.showSecondLifeFromKeep = showSecondLifeFromKeep;
+
     // ── Progress bar ──
     function updateProgress(step) {
       for (let i = 1; i <= 4; i++) {
@@ -376,7 +404,7 @@ const params = new URLSearchParams(window.location.search);
       }
     }
 
-function updateGlobalCartCount() {
+    function updateGlobalCartCount() {
       const cc = document.getElementById('nav-cart-count');
       if (cc) {
         const cart = JSON.parse(localStorage.getItem('cart_' + (localStorage.getItem('active_user') || 'user_001'))) || [];
